@@ -21,7 +21,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 
 	  $participant = $this->getContactData($contactId);
 
-	  $this->addParticipant($participant, $webinar);
+	  $this->addParticipant($participant, $webinar, $triggerData);
 	}
 
 	/**
