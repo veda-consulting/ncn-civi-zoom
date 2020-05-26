@@ -54,6 +54,7 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
     $cGroupResult = civicrm_api3('CustomGroup', 'get', array(
       'sequential' => 1,
       'extends' => "Event",
+      'options' => array('limit' => 0),
     ));
 
     if (empty($cGroupResult['values'])) {
@@ -64,6 +65,7 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
       $cFieldResult = civicrm_api3('CustomField', 'get', array(
         'sequential' => 1,
         'custom_group_id' => $cgValue['id'],
+        'options' => array('limit' => 0),
       ));
 
       if (!empty($cFieldResult['values'])) {
