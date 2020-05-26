@@ -185,7 +185,7 @@ function ncn_civi_zoom_civicrm_navigationMenu(&$menu) {
         'attributes' => array(
           'label'     => ts('Zoom Settings'),
           'name'      => 'Zoom_Settings',
-          'url'       => CRM_Utils_System::url('civicrm/Zoom/settings', 'reset=1',  TRUE, NULL, FALSE, TRUE),
+          'url'       => CRM_Utils_System::url('civicrm/Zoom/settings', 'reset=1'),
           'active'    => 1,
           'parentID'  => $parentId,
           'operator'  => NULL,

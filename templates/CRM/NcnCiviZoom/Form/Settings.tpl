@@ -13,7 +13,7 @@
     {if $elementName == 'custom_field_id'}
       <span class="description">
       </br>
-      {ts}Please enter the field Id. Example: 48{/ts}
+      {ts}Select the event custom field which holds the Zoom Webminar ID{/ts}
     {/if}
     </div>
 

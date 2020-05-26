@@ -81,7 +81,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 	 * @param array $participant participant data where email, first_name, and last_name are required
 	 * @param int $webinar id of an existing Zoom webinar
 	 */
-	private function addParticipant($participant, $webinar) {
+	private function addParticipant($participant, $webinar, $triggerData) {
 		$settings = CRM_NcnCiviZoom_Utils::getZoomSettings();
 		$url = $settings['base_url'] . "/webinars/$webinar/registrants";
 		$token = $this->createJWTToken();
@@ -96,11 +96,15 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 			$firstName = $participant['first_name'];
 			$lastName = $participant['last_name'];
 
+			$this->logAction('Participant Added to Zoom', $triggerData, \PSR\Log\LogLevel::INFO);
+
 			CRM_Core_Session::setStatus(
 				"$firstName $lastName was added to Zoom Webinar $webinar.",
 				ts('Participant added!'),
 				'success'
 			);
+		} else {
+			$this->logAction('Something went wrong when adding participant to Zoom', $triggerData, \PSR\Log\LogLevel::INFO);
 		}
 	}
 

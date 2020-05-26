@@ -20,9 +20,14 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
     $this->add('text', 'base_url', ts('Base Url'), array(
       'size' => 48,
     ), TRUE);
-    $this->add('text', 'custom_field_id', ts('Custom Field Id'), array(
-      'size' => 48,
-    ), TRUE);
+    $this->add(
+      'select',
+      'custom_field_id',
+      'Custom Field',
+      $this->getEventCustomFields(),
+      TRUE,
+      array('multiple' => FALSE)
+    );
     $this->addButtons([
       [
         'type' => 'submit',
@@ -41,6 +46,36 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
     parent::buildQuickForm();
   }
 
+  /**
+   * @return array
+   */
+  public static function getEventCustomFields() {
+    $cFields = array('' => '- select -');
+    $cGroupResult = civicrm_api3('CustomGroup', 'get', array(
+      'sequential' => 1,
+      'extends' => "Event",
+    ));
+
+    if (empty($cGroupResult['values'])) {
+      return $cFields;
+    }
+
+    foreach ($cGroupResult['values'] as $cgKey => $cgValue) {
+      $cFieldResult = civicrm_api3('CustomField', 'get', array(
+        'sequential' => 1,
+        'custom_group_id' => $cgValue['id'],
+      ));
+
+      if (!empty($cFieldResult['values'])) {
+        foreach ($cFieldResult['values'] as $cfKey => $cfValue) {
+          $cFields[$cfValue['id']] = $cfValue['label'];
+        }
+      }
+    }
+
+    return $cFields;
+  }
+
   public function postProcess() {
     $values = $this->exportValues();
     $zoomSettings['api_key']      = $values['api_key'];
@@ -49,7 +84,7 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
     $zoomSettings['custom_field_id'] = $values['custom_field_id'];
     CRM_Core_BAO_Setting::setItem($zoomSettings, ZOOM_SETTINGS, 'zoom_settings');
     CRM_Core_Session::setStatus(E::ts('Your Settings have been saved'), ts('Zoom Settings'), 'success');
-    $redirectUrl    = CRM_Utils_System::url('civicrm/Zoom/settings', 'reset=1',  TRUE, NULL, FALSE, TRUE);
+    $redirectUrl    = CRM_Utils_System::url('civicrm/Zoom/settings', 'reset=1');
     CRM_Utils_System::redirect($redirectUrl);
     parent::postProcess();
   }
