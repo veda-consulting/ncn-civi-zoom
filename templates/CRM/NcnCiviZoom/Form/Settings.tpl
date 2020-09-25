@@ -70,7 +70,7 @@
     <div class="content">{$form.custom_field_id_webinar.html}
       <span class="description">
       </br>
-      {ts}Select the event custom field which holds the Zoom Webminar ID{/ts}
+      {ts}Select the event custom field which holds the Zoom Webinar ID{/ts}
       </span>
     </div>
     </br>
