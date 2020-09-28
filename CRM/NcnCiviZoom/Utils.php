@@ -210,10 +210,7 @@ class CRM_NcnCiviZoom_Utils {
         }
         if(!empty($apiResult['values'][0]['latest'])){
           if(array_key_exists($apiResult['values'][0]['latest'], $zoomList)){
-            $defaults['zoom_account_list'] = $apiResult['values'][0]['latest'];
-
-            $defaults[$zoomFieldKey] = $apiResult['values'][0]['latest'];
-            $form->setDefaults($defaults);
+            $form->setDefaults(['zoom_account_list' => $apiResult['values'][0]['latest']]);
           }
         }
       }
