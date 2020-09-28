@@ -21,7 +21,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 	  if(!empty($meeting)){
 	  	$this->addParticipant($participant, $meeting, $triggerData, 'Meeting');
 	  } elseif (!empty($webinar)) {
-	  	$this->addParticipant($participant, $webinar, $triggerData, 'Webminar');
+	  	$this->addParticipant($participant, $webinar, $triggerData, 'Webinar');
 	  }
 	}
 
@@ -114,13 +114,13 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 	 *
 	 * @param array $participant participant data where email, first_name, and last_name are required
 	 * @param int $entityID id of an existing Zoom webinar/meeting
-	 * @param string $entity 'Meeting' or 'Webminar'
+	 * @param string $entity 'Meeting' or 'Webinar'
 	 */
 	private function addParticipant($participant, $entityID, $triggerData, $entity) {
 		$event = $triggerData->getEntityData('Event');
 		$accountId = CRM_NcnCiviZoom_Utils::getZoomAccountIdByEventId($event['id']);
 		$settings = CRM_NcnCiviZoom_Utils::getZoomSettings();
-		if($entity == 'Webminar'){
+		if($entity == 'Webinar'){
 			$url = $settings['base_url'] . "/webinars/$entityID/registrants";
 		} elseif($entity == 'Meeting'){
 			$url = $settings['base_url'] . "/meetings/$entityID/registrants";
