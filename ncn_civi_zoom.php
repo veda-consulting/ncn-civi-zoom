@@ -310,11 +310,14 @@ function ncn_civi_zoom_civicrm_buildForm($formName, &$form) {
   //Add the zoom account list to the form once the custom datatype is loaded
   if($formName == 'CRM_Custom_Form_CustomDataByType'){
     if($form->_cdType == 'Event' && $form->_type == 'Event'){
-      CRM_NcnCiviZoom_Utils::addZoomListToEventForm($form);
-      $templatePath = realpath(dirname(__FILE__)."/templates");
-      CRM_Core_Region::instance('page-body')->add(array(
-        'template' => "{$templatePath}/CRM/NcnCiviZoom/Event/Form/ManageEvent/Extra.tpl"
-      ));
+      $customAccountId = CRM_NcnCiviZoom_Utils::getAccountIdCustomField();
+      if(!empty($customAccountId)){
+        CRM_NcnCiviZoom_Utils::addZoomListToEventForm($form);
+        $templatePath = realpath(dirname(__FILE__)."/templates");
+        CRM_Core_Region::instance('page-body')->add(array(
+          'template' => "{$templatePath}/CRM/NcnCiviZoom/Event/Form/ManageEvent/Extra.tpl"
+        ));
+      }
     }
   }
 
@@ -327,7 +330,10 @@ function ncn_civi_zoom_civicrm_buildForm($formName, &$form) {
         return null;
       }
 
-      CRM_NcnCiviZoom_Utils::addZoomListToEventForm($form);
+      $customAccountId = CRM_NcnCiviZoom_Utils::getAccountIdCustomField();
+      if(!empty($customAccountId)){
+        CRM_NcnCiviZoom_Utils::addZoomListToEventForm($form);
+      }
 
     }
   }
