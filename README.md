@@ -49,7 +49,7 @@ More details [here](https://docs.civicrm.org/sysadmin/en/latest/customize/extens
 
 ### Sign into CiviCRM and configure the Zoom settings
 * Install the extension
-* Navigate  to the zoom settings as **Events >> Zoom Settings**. 
+* Navigate  to the zoom settings as **Events >> Zoom Settings**.
 * Create an entry for the zoom account (Note that the extension supports multiple Accounts)
 ![Screenshot of add new zoom account button](images/add-new-zoom-account.jpg)
 
@@ -60,7 +60,7 @@ More details [here](https://docs.civicrm.org/sysadmin/en/latest/customize/extens
 ![Screenshot of add common zoom settings](images/add-common-zoom-settings.jpg)
 
 ### Configure CiviRules to send participant information to Zoom
-In order to pass the details over to Zoom the extension creates a new rule action "Add Participant to Zoom". The action uses the zoom details set on the event the participant has registered for and uses that to determine which event, if any, to register them into Zoom. What you will need to do is determine how long a delay, if any, you want before the participant is pushed to zoom. 
+In order to pass the details over to Zoom the extension creates a new rule action "Add Participant to Zoom". The action uses the zoom details set on the event the participant has registered for and uses that to determine which event, if any, to register them into Zoom. What you will need to do is determine how long a delay, if any, you want before the participant is pushed to zoom.
 
 Once you've decided this you can create a new CiviRule as per the screen shot.
 
@@ -72,3 +72,7 @@ Once you've decided this you can create a new CiviRule as per the screen shot.
 * Once you've selected a zoom account and entered a Webinar Id / Meeting Id your webinar/meeting id will be verified with the selected zoom account along with a message next to the text box as below.
 ![Screenshot of event configuration](images/event-configuration.jpg)
 
+
+## Creating a Scheduled Job for a CiviEvent
+### Configure the Scheduled Job
+* Once you've created a zoom event, you need to create a scheduled job for that event. The Api Entity should be **Event** and the api action should be **Generatezoomattendance**. This api has only one parameter which is 'days'. This will be used the events using the event's end date i.e the events ended 'x' number of days from current date, where 'x' is the 'days' paramter you enter. You can schedule the Job as frequent  as you need it to run.
