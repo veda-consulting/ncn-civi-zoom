@@ -64,7 +64,7 @@ In order to pass the details over to Zoom the extension creates a new rule actio
 
 Once you've decided this you can create a new CiviRule as per the below.
 
-**Add Trigger: Event Participant is added
+**Add Trigger: Event Participant is added**
 
 ![Screenshot of add civirules condition](images/civiruleCondition.png)
 ![Screenshot of add civirules actions](images/civiruleAction.png)
