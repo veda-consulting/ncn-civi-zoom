@@ -82,7 +82,7 @@ class CRM_NcnCiviZoom_Utils {
    */
   public function getAllZoomSettingsNamesAndIds(){
     $zoomSettings = self::getAllZoomAccountSettings();
-    $zoomList = [];
+    $zoomList[0] = "--select--";
     if(!empty($zoomSettings)){
       foreach ($zoomSettings as $key => $value) {
         $zoomList[$key] = $value['name'];
@@ -174,13 +174,13 @@ class CRM_NcnCiviZoom_Utils {
 
   public function addZoomListToEventForm(&$form){
 
-    $zoomList = CRM_NcnCiviZoom_Utils::getAllZoomSettingsNamesAndIds();
+    $zoomList = self::getAllZoomSettingsNamesAndIds();
 
     $form->add(
       'select',
       'zoom_account_list',
       'Select the zoom account',
-      array_merge(['0' => "--select--"] , $zoomList),
+      $zoomList,
       FALSE,
       array('multiple' => FALSE, 'id' => 'zoom_account_list')
     );
@@ -218,5 +218,219 @@ class CRM_NcnCiviZoom_Utils {
         }
       }
     }
+  }
+
+  /**
+   * Union two given arrays
+   *
+   * @param array1 - Array
+   * @param array2 - Array
+   * @return union - Array
+   */
+  public static function multiDimArrayUnion($array1 = [], $array2 = []){
+    if(!is_array($array1)){
+      return $array1;
+    }
+
+    if(!is_array($array2)){
+      $array2 = [];
+    }
+    $merged = array_merge($array1 , $array2);
+    foreach ($merged as $key => $value) {
+      $serialized[$key] = serialize($value);
+    }
+    $serialized = array_unique($serialized);
+    foreach ($serialized as $key => $value) {
+      $union[$key] = unserialize($value);
+    }
+
+    return $union;
+  }
+
+  /**
+   * Upcoming Events List
+   *
+   * @return Array of events
+   */
+  public static function getUpcomingEventsList(){
+    $today = date("Y-m-d");
+
+    $startDate = civicrm_api3('Event', 'get', [
+      'start_date' => ['>=' => $today],
+    ]);
+
+    $endDate = civicrm_api3('Event', 'get', [
+      'end_date' => ['>=' => $today],
+    ]);
+
+    return self::multiDimArrayUnion($startDate['values'], $endDate['values']);
+  }
+
+  /**
+   * Filter recent registrants list by time(in mins)
+   *
+   * @param registrantsList - Array
+   * @param minsBack - Integer
+   * @return recentRegistrants - Array
+   */
+  public static function filterZoomRegistrantsByTime($registrantsList = [], $minsBack = 60){
+    if(empty($registrantsList) || !is_array($registrantsList)){
+      return;
+    }
+    $recentRegistrants = [];
+    foreach ($registrantsList as $registrant) {
+      $registrationTime = $registrant['create_time'];
+
+      $registrationTime = str_replace(['T','Z'], [' ',''], $registrationTime);
+      $registrationTime = date($registrationTime);
+      $now = date('Y-m-d h:i:s');
+      $seconds = strtotime($now) - strtotime($registrationTime);
+      $mins = ($seconds/60);
+      if($mins < $minsBack){
+        $recentRegistrants[] = $registrant;
+      }
+    }
+
+    return $recentRegistrants;
+  }
+
+  /**
+   * String of Registrants
+   *
+   * @param registrantsList - Array
+   * @param glue - String
+   * @return stringOfRegistrants - String
+   */
+  public static function stringOfRegistrants($registrantsList = [], $glue = ' , '){
+    if(empty($registrantsList) || !is_array($registrantsList)){
+      return;
+    }
+    $registrantsUpdateArray = [];
+    foreach ($registrantsList as $registrant) {
+      $registrantsUpdateArray[] = $registrant['first_name']." ".$registrant['last_name']." - ".$registrant['email'];
+    }
+    $stringOfRegistrants = implode($glue, $registrantsUpdateArray);
+    return $stringOfRegistrants;
+  }
+
+  /**
+   * Update the Zoom Registrants to event's notes
+   *
+   * @param eventId - Integer
+   * @param registrantsList - Array
+   */
+  public static function updateZoomRegistrantsToNotes($eventId, $registrantsList = []){
+    $updateResult = '';
+    if(empty($eventId) || empty($registrantsList) || !is_array($registrantsList)){
+      $updateResult = 'Params Missing';
+      return $updateResult;
+    }
+
+    $updateString = self::stringOfRegistrants($registrantsList);
+    $cFNameEventNotes = CRM_NcnCiviZoom_Constants::CF_Event_Zoom_Notes;
+
+    try {
+      $cFDetails = civicrm_api3('CustomField', 'get', [
+        'sequential' => 1,
+        'name' => $cFNameEventNotes,
+      ]);
+    } catch (Exception $e) {
+      CRM_Core_Error::debug_var('Error in updateZoomRegistrantsToNotes', $e);
+      CRM_Core_Error::debug_var('Error while calling api CustomField get', $cFNameEventNotes);
+      $updateResult = "Couldn't retrieve the Custom Field ".$cFNameEventNotes." data";
+    }
+    if(!empty($cFDetails['id'])){
+      try {
+        $apiResult = civicrm_api3('CustomValue', 'create', [
+          'entity_id' => $eventId,
+          'custom_'.$cFDetails['id'] => $updateString.".",
+        ]);
+      } catch (Exception $e) {
+        CRM_Core_Error::debug_var('Error in updateZoomRegistrantsToNotes', $e);
+        CRM_Core_Error::debug_var('Error while calling api CustomField create', [
+          'eventId' => $eventId,
+          'cFDetails' => $cFDetails,
+          'updateString' => $updateString
+        ]);
+      }
+      if($apiResult['values']){
+        $updateResult = 'Registrants have been updated to the event successfully.';
+      }
+    }
+
+    return $updateResult;
+  }
+
+  /*
+   * Function to get message template details
+   */
+  public static function getMessageTemplateDetails($title = null, $id = null) {
+    if(!empty($title)){
+      $result = civicrm_api3('MessageTemplate', 'get', array(
+        'sequential' => 1,
+        'msg_title' => $title,
+      ));
+
+      return $result ['values'][0];
+    }
+  }
+
+  /**
+   * Send Registrants as Email
+   *
+   * @param toEmails - String
+   * @param registrantsList - Array
+   * @param event - Integer
+   */
+  public static function sendZoomRegistrantsToEmail($toEmails, $registrantsList = [], $event){
+    if(empty($toEmails) || empty($registrantsList)){
+      return;
+    }
+
+    $msgTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
+    $emailContent = self::getMessageTemplateDetails($msgTitle);
+    if(empty($emailContent)){
+      return 'Email Template Not found.';
+    }
+    $return = [];
+    // Replacing the tokens
+    $emailContent['subject'] = str_replace('{event_title}' ,$event, $emailContent['msg_subject']);
+    $registrantsString = self::stringOfRegistrants($registrantsList, '<br>');
+    $emailContent['html'] = str_replace(['{registrants}', '{event_title}'], [$registrantsString, $event], $emailContent['msg_html']);
+    $emailIds = explode(',', $toEmails);
+    foreach ($emailIds as $emailId) {
+      $emailSent = self::sendEmail($emailId, $emailContent);
+      if($emailSent){
+        $return['email_message'][] = 'Email has been Sent to '.$emailId;
+      }else{
+        $return['email_message'][] = "Email couldn't be Sent to ".$emailId;
+      }
+    }
+
+    return $return;
+  }
+
+  /**
+   * Function to send email
+   */
+  public static function sendEmail($email, $emailContent) {
+    $emailSent = FALSE;
+    if (empty($email) || empty($emailContent)) {
+      return $emailSent;
+    }
+
+    $mailParams['toName'] = $email;
+    $mailParams['toEmail'] = $email;
+
+    $mailParams['text'] = !empty($emailContent['text']) ? $emailContent['text'] : '';
+    $mailParams['html'] = !empty($emailContent['html']) ? $emailContent['html'] : '';
+    $mailParams['subject'] = !empty($emailContent['subject']) ? $emailContent['subject'] : '';
+    $defaultAddress = CRM_Core_OptionGroup::values('from_email_address', NULL, NULL, NULL, ' AND is_default = 1');
+    $mailParams['from'] = reset($defaultAddress);
+
+    require_once 'CRM/Utils/Mail.php';
+    $emailSent = CRM_Utils_Mail::send($mailParams);
+
+    return $emailSent;
   }
 }

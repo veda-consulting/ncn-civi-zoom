@@ -15,7 +15,7 @@ use Zttp\Zttp;
  *
  * @see https://docs.civicrm.org/dev/en/latest/framework/api-architecture/
  */
-function _civicrm_api3_event_generatezoomattendance_spec(&$spec) {
+function _civicrm_api3_zoomevent_generatezoomattendance_spec(&$spec) {
 	$spec['days'] = [
     'title' => 'Select Events ended in past x Days',
     'description' => 'Events ended how many days before you need to select?',
@@ -44,7 +44,7 @@ function _civicrm_api3_event_generatezoomattendance_spec(&$spec) {
  * @see civicrm_api3_create_success
  *
  */
-function civicrm_api3_event_generatezoomattendance($params) {
+function civicrm_api3_zoomevent_generatezoomattendance($params) {
 	$allAttendees = [];
 	$days = $params['days'];
 	$pastDateTimeFull = new DateTime();
@@ -263,4 +263,67 @@ function getMeetingID($eventId) {
 	}
 
 	return $result;
+}
+
+
+/**
+ * Get Recent Zoom registrants specs
+ *
+ * @param array $spec description of fields supported by this API call
+ *
+ * @see https://docs.civicrm.org/dev/en/latest/framework/api-architecture/
+ */
+function _civicrm_api3_zoomevent_getrecentzoomregistrants_spec(&$spec) {
+	$spec['mins'] = [
+    'title' => 'How many minutes before?',
+    'description' => 'Enter the minutes, as you want the notification of the zoom registrants. By default it will be 60 minutes.',
+    'type' => CRM_Utils_Type::T_INT,
+    'api.required' => 0,
+  ];
+
+	$spec['to_emails'] = [
+    'title' => 'Email address',
+    'description' => 'Enter the Email addresses(seperated by comma) to which you want the regitrants list to be sent.',
+    'type' => CRM_Utils_Type::T_TEXT,
+    'api.required' => 0,
+  ];
+}
+
+
+
+/**
+ * Get Recent Zoom registrants
+ *
+ * @param array $spec description of fields supported by this API call
+ *
+ * @see https://docs.civicrm.org/dev/en/latest/framework/api-architecture/
+ */
+function civicrm_api3_zoomevent_getrecentzoomregistrants($params) {
+	if(empty($params['mins'])){
+		$params['mins'] = 60;
+	}
+
+	$result = [];
+
+	$events = CRM_NcnCiviZoom_Utils::getUpcomingEventsList();
+	foreach ($events as $key => $event) {
+		$registrantsList = CRM_CivirulesActions_Participant_AddToZoom::getZoomRegistrants($event['id']);
+		if(!empty($registrantsList)){
+			$recentRegistrants = CRM_NcnCiviZoom_Utils::filterZoomRegistrantsByTime($registrantsList, $params['mins']);
+			if(!empty($recentRegistrants)){
+				$notesUpdateMessage = CRM_NcnCiviZoom_Utils::updateZoomRegistrantsToNotes($event['id'], $registrantsList);
+				$result[$event['id']]['Notes Update Message'] = $notesUpdateMessage;
+				if(!empty($params['to_emails'])){
+					$emailSentMessage = CRM_NcnCiviZoom_Utils::sendZoomRegistrantsToEmail($params['to_emails'], $recentRegistrants, $event['title']);
+					$result[$event['id']]['Email Update Message'] = $emailSentMessage;
+				}
+			}else{
+				$result[$event['id']]['Notes Update Message'] = 'No recent registrants to update.';
+			}
+		}else{
+			$result[$event['id']]['Message'] = 'No Registrants to Update';
+		}
+	}
+
+	return civicrm_api3_create_success($result, $params, 'Event');
 }
