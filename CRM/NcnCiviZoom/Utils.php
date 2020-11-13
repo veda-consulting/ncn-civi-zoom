@@ -483,7 +483,7 @@ class CRM_NcnCiviZoom_Utils {
     ]);
     $zoomSettings = self::getZoomSettings();
     if(!empty($templateDetails['id'])){
-      $settings['registrants_email_template_id'] = $templateDetails['id'];
+      $zoomSettings['registrants_email_template_id'] = $templateDetails['id'];
     }
     CRM_Core_BAO_Setting::setItem($zoomSettings, ZOOM_SETTINGS, 'zoom_settings');
   }
