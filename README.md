@@ -1,10 +1,11 @@
 
 
+
 # ncn-civi-zoom
 Civirules Conditions/Actions that talk with Zoom developed for NCN.
 
 # What it does
-This extension will connect CiviEvents with Zoom, allowing registrations for zoom events to be captured in your CiviCRM install via your website. This has a multitude of benefits, including GDPR compliance, using Zooms workflow, removing the need to manually export/import as well as being able to manage events in the same way you would any other CiviCRM events.
+This extension will connect CiviEvents with Zoom, allowing registrations for zoom events to be captured in your CiviCRM install via your website. This has a multitude of benefits, including GDPR compliance, using Zooms workflow, removing the need to manually export/import as well as being able to manage events in the same way you would any other CiviCRM events. This will also pull the registrants' details for the upcoming zoom based events and update them into the 'Event Zoom Notes' field of each event.
 
 ## Requirements
 
@@ -73,6 +74,9 @@ Once you've decided this you can create a new CiviRule as per the screen shot.
 ![Screenshot of event configuration](images/event-configuration.jpg)
 
 
-## Creating a Scheduled Job for a CiviEvent
-### Configure the Scheduled Job
-* Once you've created a zoom event, you need to create a scheduled job for that event. The Api Entity should be **Event** and the api action should be **Generatezoomattendance**. This api has only one parameter which is 'days'. This will be used the events using the event's end date i.e the events ended 'x' number of days from current date, where 'x' is the 'days' paramter you enter. You can schedule the Job as frequent  as you need it to run.
+## Creating Scheduled Jobs
+### Scheduled Job for Zoom attendance
+* Once you've created a zoom event, you need to create a scheduled job for that event. The Api Entity should be **Zoom Event** and the api action should be **Generatezoomattendance**. This api has only one parameter which is 'days'. This will be used the events using the event's end date i.e the events ended 'x' number of days from current date, where 'x' is the 'days' paramter you enter. You can schedule the Job as frequent  as you need it to run.
+
+### Scheduled Job for updating Zoom registrants
+* Once you've created a zoom event, you need to create a scheduled job for that event. The Api Entity should be **Zoom Event** and the api action should be **Getrecentzoomregistrants**. This api has two parameters one is 'mins' i.e registrants registered that many 'minutes'  before will be filtered and will be taken for updation and for sending  email. The other parameter is the Email address to which you want the regitrants list to be sent, for multiple email addresses seperate each by a comma symbol.

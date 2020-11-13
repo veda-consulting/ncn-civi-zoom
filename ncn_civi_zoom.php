@@ -190,6 +190,18 @@ function ncn_civi_zoom_civicrm_navigationMenu(&$menu) {
 
 function ncn_civi_zoom_civicrm_validateForm($formName, &$fields, &$files, &$form, &$errors) {
 
+  // Throw error if tried to delete the created message template
+  if($formName == 'CRM_Admin_Form_MessageTemplates'){
+    $submitValues = $form->getVar('_submitValues');
+    if($submitValues['_qf_MessageTemplates_upload'] == 'Delete'){
+      $FormValues = $form->getVar('_values');
+      $msgTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
+      if($FormValues['msg_title'] == $msgTitle){
+        $errors['_qf_default'] = ts("Sorry this template Can't be deleted. This was created by ncn_civi_zoom.");
+      }
+    }
+  }
+
   if($formName == 'CRM_Event_Form_ManageEvent_EventInfo' && isset($form->_subType)){
     $customIds['Webinar'] = CRM_NcnCiviZoom_Utils::getWebinarCustomField();
     $customIds['Meeting'] = CRM_NcnCiviZoom_Utils::getMeetingCustomField();
