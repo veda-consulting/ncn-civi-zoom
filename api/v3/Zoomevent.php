@@ -62,90 +62,108 @@ function civicrm_api3_zoomevent_generatezoomattendance($params) {
 		$eventIds[] = $value['id'];
 	}
 	foreach ($eventIds as $eventId) {
-		$settings = CRM_NcnCiviZoom_Utils::getZoomSettingsByEventId($eventId);
-		$key = $settings['secret_key'];
-		$payload = array(
-		    "iss" => $settings['api_key'],
-		    "exp" => strtotime('+1 hour')
-		);
-		$jwt = JWT::encode($payload, $key);
-		$webinarId = getWebinarID($eventId);
-		$meetingId = getMeetingID($eventId);
-		$page = 0;
-		if(!empty($webinarId)){
-			$entityId = $webinarId;
-			$url = $settings['base_url'] . "/past_webinars/$webinar/absentees?page=$page";
-			$entity = "Webinar";
-		}elseif(!empty($meetingId)){
-			$entityId = $meetingId;
-			$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?page=$page";
-			$entity = "Meeting";
-		}else{
+		CRM_Core_Error::debug_var('eventId', $eventId);
+		$list = CRM_CivirulesActions_Participant_AddToZoom::getZoomAttendeeOrAbsenteesList($eventId);
+		if(empty($list)){
 			continue;
 		}
-
-		$token = $jwt;
-		// Get absentees from Zoom API
-		$response = Zttp::withHeaders([
-			'Content-Type' => 'application/json;charset=UTF-8',
-			'Authorization' => "Bearer $token"
-		])->get($url);
-
-		$attendees = [];
-		if($entity == "Webinar"){
-			$pages = $response->json()['page_count'];
-
-			// Store registrants who did not attend the webinar
-			$absentees = $response->json()['registrants'];
-
-			$absenteesEmails = [];
-
-			while($page < $pages) {
-				foreach($absentees as $absentee) {
-					$email = $absentee['email'];
-
-					array_push($absenteesEmails, "'$email'");
-				}
-
-				$attendees = array_merge($attendees, selectAttendees($absenteesEmails, $eventId));
-
-				$page++;
-
-				// Get and loop through all of webinar registrants
-				$url = $settings['base_url'] . "/past_webinars/$webinar/absentees?page=$page";
-
-				// Get absentees from Zoom API
-				$response = Zttp::withHeaders([
-					'Content-Type' => 'application/json;charset=UTF-8',
-					'Authorization' => "Bearer $token"
-				])->get($url);
-
-				// Store registrants who did not attend the webinar
-				$absentees = $response->json()['registrants'];
-
-				$absenteesEmails = [];
-			}
-		}elseif ($entity == "Meeting") {
-			$attendeesEmails = [];
-			$page = 1;
-			do {
-				$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?page=$page";
-				// Get absentees from Zoom API
-				$response = Zttp::withHeaders([
-					'Content-Type' => 'application/json;charset=UTF-8',
-					'Authorization' => "Bearer $token"
-				])->get($url);
-				$participants = $response->json()['participants'];
-				foreach ($participants as $key => $value) {
-					$attendeesEmails[] = $value['user_email'];
-				}
-				$page++;
-				$pageCount = $response->json()['page_count'];
-			} while ($page <= $pageCount);
-			$attendees = selectAttendees($attendeesEmails, $eventId, "Meeting");
+		$webinarId = getWebinarID($eventId);
+		$meetingId = getMeetingID($eventId);
+		if(!empty($webinarId)){
+			$attendees = selectAttendees($list, $eventId, "Webinar");
+		}elseif(!empty($meetingId)){
+			$attendees = selectAttendees($list, $eventId, "Meeting");
 		}
 		updateAttendeesStatus($attendees, $eventId);
-		$allAttendees[] = $attendees;
+		$allAttendees[$eventId] = $attendees;
+		// $zoomAccountId = CRM_NcnCiviZoom_Utils::getZoomAccountIdByEventId($eventId);
+		// if(empty($zoomAccountId)){
+		// 	continue;
+		// }
+		// $settings = CRM_NcnCiviZoom_Utils::getZoomSettings($zoomAccountId);
+		// $key = $settings['secret_key'];
+		// $payload = array(
+		//     "iss" => $settings['api_key'],
+		//     "exp" => strtotime('+1 hour')
+		// );
+		// $jwt = JWT::encode($payload, $key);
+		// $webinarId = getWebinarID($eventId);
+		// $meetingId = getMeetingID($eventId);
+		// $page = 0;
+		// if(!empty($webinarId)){
+		// 	$entityId = $webinarId;
+		// 	$url = $settings['base_url'] . "/past_webinars/$webinar/absentees?page=$page";
+		// 	$entity = "Webinar";
+		// }elseif(!empty($meetingId)){
+		// 	$entityId = $meetingId;
+		// 	$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?page=$page";
+		// 	$entity = "Meeting";
+		// }else{
+		// 	continue;
+		// }
+
+		// $token = $jwt;
+		// // Get absentees from Zoom API
+		// $response = Zttp::withHeaders([
+		// 	'Content-Type' => 'application/json;charset=UTF-8',
+		// 	'Authorization' => "Bearer $token"
+		// ])->get($url);
+
+		// $attendees = [];
+		// if($entity == "Webinar"){
+		// 	$pages = $response->json()['page_count'];
+
+		// 	// Store registrants who did not attend the webinar
+		// 	$absentees = $response->json()['registrants'];
+
+		// 	$absenteesEmails = [];
+
+		// 	while($page < $pages) {
+		// 		foreach($absentees as $absentee) {
+		// 			$email = $absentee['email'];
+
+		// 			array_push($absenteesEmails, "'$email'");
+		// 		}
+
+		// 		$attendees = array_merge($attendees, selectAttendees($absenteesEmails, $eventId));
+
+		// 		$page++;
+
+		// 		// Get and loop through all of webinar registrants
+		// 		$url = $settings['base_url'] . "/past_webinars/$webinar/absentees?page=$page";
+
+		// 		// Get absentees from Zoom API
+		// 		$response = Zttp::withHeaders([
+		// 			'Content-Type' => 'application/json;charset=UTF-8',
+		// 			'Authorization' => "Bearer $token"
+		// 		])->get($url);
+
+		// 		// Store registrants who did not attend the webinar
+		// 		$absentees = $response->json()['registrants'];
+
+		// 		$absenteesEmails = [];
+		// 	}
+		// }elseif ($entity == "Meeting") {
+		// 	$attendeesEmails = [];
+		// 	$page = 1;
+		// 	do {
+		// 		$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?page=$page";
+		// 		// Get absentees from Zoom API
+		// 		$response = Zttp::withHeaders([
+		// 			'Content-Type' => 'application/json;charset=UTF-8',
+		// 			'Authorization' => "Bearer $token"
+		// 		])->get($url);
+		// 		$participants = $response->json()['participants'];
+		// 		foreach ($participants as $key => $value) {
+		// 			$attendeesEmails[] = $value['user_email'];
+		// 		}
+		// 		$page++;
+		// 		$pageCount = $response->json()['page_count'];
+		// 	} while ($page <= $pageCount);
+		// 	$attendees = selectAttendees($attendeesEmails, $eventId, "Meeting");
+		// }
+		// updateAttendeesStatus($attendees, $eventId);
+		// $allAttendees[] = $attendees;
 	}
 	$return['allAttendees'] = $allAttendees;
 

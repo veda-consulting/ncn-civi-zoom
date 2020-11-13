@@ -239,29 +239,76 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 		$settings = CRM_NcnCiviZoom_Utils::getZoomSettings();
 
 		if(!empty($meetingId)){
-	  	$url = $settings['base_url'] . "/meetings/".$meetingId.'/registrants?page=';
+	  	$url = $settings['base_url'] . "/meetings/".$meetingId.'/registrants?';
 		} elseif (!empty($webinarId)) {
-	  	$url = $settings['base_url'] . "/webinars/".$webinarId.'/registrants?page=';
+	  	$url = $settings['base_url'] . "/webinars/".$webinarId.'/registrants?';
 		}
 		$page = 1;
 	  $token = $object->createJWTToken($accountId);
 	  $result = [];
+	  $next_page_token = null;
 		do {
-			$fetchUrl = $url.$page;
+			$fetchUrl = $url.$next_page_token;
 		  $token = $object->createJWTToken($accountId);
 			$response = Zttp::withHeaders([
 				'Content-Type' => 'application/json;charset=UTF-8',
 				'Authorization' => "Bearer $token"
 			])->get($fetchUrl);
-			CRM_Core_Error::debug_var('zoom response', $response);
 			$result = $response->json();
+			CRM_Core_Error::debug_var('zoom result', $result);
 			if(!empty($result['registrants'])){
-				$zoomRegistrantsList = array_merge($result['registrants'], $zoomRegistrantsList);
+				$zoomRegistrantsList = array_merge($zoomRegistrantsList, $result['registrants']);
 			}
-			$page++;
-		} while ($page <= $result['page_count']);
+			$next_page_token = 'next_page_token='.$result['next_page_token'];
+		} while ($result['next_page_token']);
 
     return $zoomRegistrantsList;
+  }
+
+  public static function getZoomAttendeeOrAbsenteesList($eventId){
+    if(empty($eventId)){
+      return [];
+    }
+    $object = new CRM_CivirulesActions_Participant_AddToZoom;
+	  $webinarId = $object->getWebinarID($eventId);
+	  $meetingId = $object->getMeetingID($eventId);
+	  $returnZoomList = [];
+	  if(empty($webinarId) && empty($meetingId)){
+	  	return $returnZoomList;
+	  }
+		$url = $array_name = $key_name = '';
+		$accountId = CRM_NcnCiviZoom_Utils::getZoomAccountIdByEventId($eventId);
+		$settings = CRM_NcnCiviZoom_Utils::getZoomSettings();
+		if(!empty($meetingId)){
+	  	$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?";
+	  	$array_name = 'participants';
+	  	$key_name = 'user_email';
+		} elseif (!empty($webinarId)) {
+	  	$url = $settings['base_url'] . "/past_webinars/$webinarId/absentees?";
+	  	$array_name = 'absentees';
+	  	$key_name = 'email';
+		}
+	  $token = $object->createJWTToken($accountId);
+	  $result = [];
+	  $next_page_token = null;
+		do {
+			$fetchUrl = $url.$next_page_token;
+		  $token = $object->createJWTToken($accountId);
+			$response = Zttp::withHeaders([
+				'Content-Type' => 'application/json;charset=UTF-8',
+				'Authorization' => "Bearer $token"
+			])->get($fetchUrl);
+			$result = $response->json();
+			CRM_Core_Error::debug_var('zoom result', $result);
+			if(!empty($result[$array_name])){
+				$list = $result[$array_name];
+				foreach ($list as $item) {
+					$returnZoomList[] = $item[$key_name];
+				}
+			}
+			$next_page_token = 'next_page_token='.$result['next_page_token'];
+		} while ($result['next_page_token']);
+    return $returnZoomList;
   }
 
 	/**

@@ -195,7 +195,7 @@ function ncn_civi_zoom_civicrm_validateForm($formName, &$fields, &$files, &$form
   // Throw error if tried to delete the created message template
   if($formName == 'CRM_Admin_Form_MessageTemplates'){
     $submitValues = $form->getVar('_submitValues');
-    if($submitValues['_qf_MessageTemplates_upload'] == 'Delete'){
+    if( !empty($submitValues['_qf_MessageTemplates_upload']) && ($submitValues['_qf_MessageTemplates_upload'] == 'Delete')){
       $FormValues = $form->getVar('_values');
       $msgTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
       $msgId = CRM_NcnCiviZoom_Utils::getEmailTemplateIdToSendZoomRegistrants();
