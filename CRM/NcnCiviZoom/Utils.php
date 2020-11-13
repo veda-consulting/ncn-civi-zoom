@@ -463,6 +463,7 @@ class CRM_NcnCiviZoom_Utils {
       'msg_html' => $msgHtml,
       'msg_subject' => $msgSubject,
     ]);
+    CRM_Utils_System::url('civicrm/menu/rebuild');
   }
 
   public static function forUpgrade1004(){

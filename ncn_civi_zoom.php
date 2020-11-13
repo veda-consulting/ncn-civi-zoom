@@ -55,6 +55,7 @@ function ncn_civi_zoom_civicrm_postInstall() {
   $settings['base_url'] = "https://api.zoom.us/v2";
   CRM_Core_BAO_Setting::setItem($settings, ZOOM_SETTINGS, 'zoom_settings');
   CRM_NcnCiviZoom_Utils::forUpgrade1003();
+  CRM_NcnCiviZoom_Utils::forUpgrade1004();
   _ncn_civi_zoom_civix_civicrm_postInstall();
 }
 
