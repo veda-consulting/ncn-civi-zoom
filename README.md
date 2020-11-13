@@ -1,6 +1,7 @@
 
 
 
+
 # ncn-civi-zoom
 Civirules Conditions/Actions that talk with Zoom developed for NCN.
 
@@ -39,10 +40,20 @@ The JWT App within your Zoom account will allow you to connect CiviCRM to zoom, 
 ### Sign into CiviCRM and setup custom fields for Zoom
 Create custom fields against the Event entity (you can select which types of events Zoom fields applicable too or leave blank for all events).
 Also note we would recommend turning off the public setting on the custom field group as you probably dont want the IDs being exposed publicly on information pages.
+
 The fields needed are
-* Zoom Account ID. As the extension supports multiple zoom accounts in a single installation this field will store which zoom account the meeting or webinar is for.
-* Zoom Webinar ID. Will hold Zoom Webinar IDs
-* Zoom Meeting ID. Will hold the Zoom Meeting ID.
+#### Zoom Account ID:
+*As the extension supports multiple zoom accounts in a single installation this field will store to which zoom account the meeting or webinar belongs to.
+* Please ensure that this custom field is set as **Data Type** to _Integer_ and **Field Type** to _Text_ as this field will only hold small natural numbers.
+* Please ensure that this custom field is set as **View Only?** to _TRUE_ as its value is set from the 'zoom_account_list' and we don't want end users mistakenly entering invalid values.
+
+#### Zoom Webinar ID
+* Will hold Zoom Webinar IDs.
+* Please ensure that this custom field is set as **Data Type** to _Number_ and **Field Type** to _Text_ as these fields will only contain large numbers (spaces in meeting numbers are trimmed before saving).
+
+#### Zoom Meeting ID
+* Will hold the Zoom Meeting ID.
+* Please ensure that this custom field is set as **Data Type** to _Number_ and **Field Type** to _Text_ as these fields will only contain large numbers (spaces in meeting numbers are trimmed before saving).
 
 ### Sign into CiviCRM and install the CiviCRM Zoom extension
 
