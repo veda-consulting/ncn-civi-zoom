@@ -197,7 +197,8 @@ function ncn_civi_zoom_civicrm_validateForm($formName, &$fields, &$files, &$form
     if($submitValues['_qf_MessageTemplates_upload'] == 'Delete'){
       $FormValues = $form->getVar('_values');
       $msgTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
-      if($FormValues['msg_title'] == $msgTitle){
+      $msgId = CRM_NcnCiviZoom_Utils::getEmailTemplateIdToSendZoomRegistrants();
+      if(($FormValues['msg_title'] == $msgTitle) || ($FormValues['id'] == $msgId)){
         $errors['_qf_default'] = ts("Sorry this template Can't be deleted. This was created by ncn_civi_zoom.");
       }
     }

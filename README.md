@@ -2,6 +2,7 @@
 
 
 
+
 # ncn-civi-zoom
 Civirules Conditions/Actions that talk with Zoom developed for NCN.
 
@@ -88,6 +89,8 @@ Once you've decided this you can create a new CiviRule as per the screen shot.
 ## Creating Scheduled Jobs
 ### Scheduled Job for Zoom attendance
 * Once you've created a zoom event, you need to create a scheduled job for that event. The Api Entity should be **Zoom Event** and the api action should be **Generatezoomattendance**. This api has only one parameter which is 'days'. This will be used the events using the event's end date i.e the events ended 'x' number of days from current date, where 'x' is the 'days' paramter you enter. You can schedule the Job as frequent  as you need it to run.
+* An example has been done below![Screenshot of Scheduled Job](images/generate-zoom-attendance)
 
 ### Scheduled Job for emailing new Zoom registrants
 * Once you've created a zoom event, you need to create a scheduled job for that event. The Api Entity should be **Zoom Event** and the api action should be **Getrecentzoomregistrants**. This api has two parameters one is 'mins' i.e registrants registered that many 'minutes'  before will be filtered and will be taken for updation and for sending  email. The other parameter is the Email address to which you want the regitrants list to be sent, for multiple email addresses seperate each by a comma symbol.
+* An example has been done below![Screenshot of Scheduled Job](images/email-zoom-registrants.PNG)

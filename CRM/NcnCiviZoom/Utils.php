@@ -464,4 +464,23 @@ class CRM_NcnCiviZoom_Utils {
       'msg_subject' => $msgSubject,
     ]);
   }
+
+  public static function forUpgrade1004(){
+    $sendZoomRegistrantsEmailTemplateTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
+    $templateDetails = civicrm_api3('MessageTemplate', 'get', [
+      'sequential' => 1,
+      'msg_title' => $sendZoomRegistrantsEmailTemplateTitle,
+    ]);
+    $zoomSettings = self::getZoomSettings();
+    if(!empty($templateDetails['id'])){
+      $settings['registrants_email_template_id'] = $templateDetails['id'];
+    }
+    CRM_Core_BAO_Setting::setItem($zoomSettings, ZOOM_SETTINGS, 'zoom_settings');
+  }
+
+  public static function getEmailTemplateIdToSendZoomRegistrants(){
+    $settings = self::getZoomSettings();
+    $templateId = CRM_Utils_Array::value('registrants_email_template_id', $settings, NULL);
+    return $templateId;
+  }
 }

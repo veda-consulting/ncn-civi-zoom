@@ -71,22 +71,20 @@ function civicrm_api3_zoomevent_generatezoomattendance($params) {
 		$jwt = JWT::encode($payload, $key);
 		$webinarId = getWebinarID($eventId);
 		$meetingId = getMeetingID($eventId);
+		$page = 0;
 		if(!empty($webinarId)){
 			$entityId = $webinarId;
 			$url = $settings['base_url'] . "/past_webinars/$webinar/absentees?page=$page";
 			$entity = "Webinar";
 		}elseif(!empty($meetingId)){
 			$entityId = $meetingId;
-			$url = $settings['base_url'] . "/past_meetings/$meetingId/participants";
+			$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?page=$page";
 			$entity = "Meeting";
 		}else{
 			continue;
 		}
 
 		$token = $jwt;
-
-		$page = 0;
-
 		// Get absentees from Zoom API
 		$response = Zttp::withHeaders([
 			'Content-Type' => 'application/json;charset=UTF-8',
@@ -129,10 +127,21 @@ function civicrm_api3_zoomevent_generatezoomattendance($params) {
 			}
 		}elseif ($entity == "Meeting") {
 			$attendeesEmails = [];
-			$participants = $response->json()['participants'];
-			foreach ($participants as $key => $value) {
-				$attendeesEmails[] = $value['user_email'];
-			}
+			$page = 1;
+			do {
+				$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?page=$page";
+				// Get absentees from Zoom API
+				$response = Zttp::withHeaders([
+					'Content-Type' => 'application/json;charset=UTF-8',
+					'Authorization' => "Bearer $token"
+				])->get($url);
+				$participants = $response->json()['participants'];
+				foreach ($participants as $key => $value) {
+					$attendeesEmails[] = $value['user_email'];
+				}
+				$page++;
+				$pageCount = $response->json()['page_count'];
+			} while ($page <= $pageCount);
 			$attendees = selectAttendees($attendeesEmails, $eventId, "Meeting");
 		}
 		updateAttendeesStatus($attendees, $eventId);
@@ -306,7 +315,7 @@ function civicrm_api3_zoomevent_getrecentzoomregistrants($params) {
 	$result = [];
 
 	$events = CRM_NcnCiviZoom_Utils::getUpcomingEventsList();
-	foreach ($events as $key => $event) {
+	foreach ($events as $key => $events) {
 		$registrantsList = CRM_CivirulesActions_Participant_AddToZoom::getZoomRegistrants($event['id']);
 		if(!empty($registrantsList)){
 			$recentRegistrants = CRM_NcnCiviZoom_Utils::filterZoomRegistrantsByTime($registrantsList, $params['mins']);

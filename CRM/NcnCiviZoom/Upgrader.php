@@ -166,4 +166,10 @@ class CRM_NcnCiviZoom_Upgrader extends CRM_NcnCiviZoom_Upgrader_Base {
     return TRUE;
   }
 
+  //Upgrade function to add the email template id to zoom settings
+  public function upgrade_1004(){
+    CRM_NcnCiviZoom_Utils::forUpgrade1004();
+    return TRUE;
+  }
+
 }
