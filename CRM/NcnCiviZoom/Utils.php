@@ -372,6 +372,15 @@ class CRM_NcnCiviZoom_Utils {
       ));
 
       return $result ['values'][0];
+    }elseif(!empty($id)){
+      $result = civicrm_api3('MessageTemplate', 'get', array(
+        'sequential' => 1,
+        'id' => $id,
+      ));
+
+      return $result ['values'][0];
+    }else{
+      return [];
     }
   }
 
@@ -387,8 +396,9 @@ class CRM_NcnCiviZoom_Utils {
       return;
     }
 
-    $msgTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
-    $emailContent = self::getMessageTemplateDetails($msgTitle);
+    // $msgTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
+    $msgId = CRM_NcnCiviZoom_Utils::getEmailTemplateIdToSendZoomRegistrants();
+    $emailContent = self::getMessageTemplateDetails(null, $msgId);
     if(empty($emailContent)){
       return 'Email Template Not found.';
     }
@@ -463,7 +473,6 @@ class CRM_NcnCiviZoom_Utils {
       'msg_html' => $msgHtml,
       'msg_subject' => $msgSubject,
     ]);
-    CRM_Utils_System::url('civicrm/menu/rebuild');
   }
 
   public static function forUpgrade1004(){
