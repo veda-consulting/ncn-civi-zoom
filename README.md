@@ -63,8 +63,12 @@ More details [here](https://docs.civicrm.org/sysadmin/en/latest/customize/extens
 ### Configure CiviRules to send participant information to Zoom
 In order to pass the details over to Zoom the extension creates a new rule action "Add Participant to Zoom". The action uses the zoom details set on the event the participant has registered for and uses that to determine which event, if any, to register them into Zoom. What you will need to do is determine how long a delay, if any, you want before the participant is pushed to zoom.
 
-Once you've decided this you can create a new CiviRule as per the screen shot.
+Once you've decided this you can create a new CiviRule as per the below.
 
+**Add Trigger: Event Participant is added**
+
+![Screenshot of add civirules condition](images/civiruleCondition.png)
+![Screenshot of add civirules actions](images/civiruleAction.png)
 
 
 ## Enabling the integration for a CiviEvent
