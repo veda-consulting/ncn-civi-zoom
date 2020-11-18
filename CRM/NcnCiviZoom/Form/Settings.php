@@ -258,6 +258,7 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
       }
 
       if(empty($this->_act) && empty($this->_id)){
+        $zoomSettings = CRM_NcnCiviZoom_Utils::getZoomSettings();
         $zoomSettings['base_url']     = $values['base_url'];
         $zoomSettings['custom_field_id_webinar'] = $values['custom_field_id_webinar'];
         $zoomSettings['custom_field_id_meeting'] = $values['custom_field_id_meeting'];

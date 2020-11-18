@@ -162,34 +162,13 @@ class CRM_NcnCiviZoom_Upgrader extends CRM_NcnCiviZoom_Upgrader_Base {
 
   //Upgrade function to add the note type custom field to the events
   public function upgrade_1003(){
-    $customGroupName = CRM_NcnCiviZoom_Constants::CG_Event_Zoom_Notes;
-    $customFieldName = CRM_NcnCiviZoom_Constants::CF_Event_Zoom_Notes;
+    CRM_NcnCiviZoom_Utils::forUpgrade1003();
+    return TRUE;
+  }
 
-    $customGroupDetails = civicrm_api3('CustomGroup', 'create', [
-      'sequential' => 1,
-      'title' => "Event Zoom Notes",
-      'extends' => "Event",
-      'name' => $customGroupName,
-    ]);
-
-    civicrm_api3('CustomField', 'create', [
-      'sequential' => 1,
-      'custom_group_id' => $customGroupDetails['values'][0]['id'],
-      'label' => "Event Zoom Notes",
-      'name' => $customFieldName,
-      'data_type' => "Memo",
-      'html_type' => "TextArea",
-      'is_view' => 1,
-    ]);
-
-    $sendZoomRegistrantsEmailTemplateTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
-    $msgHtml = "<br> {event_title} <br> {registrants} <br>";
-    $msgSubject = "Recently Joined to the zoom event: {event_title}";
-    civicrm_api3('MessageTemplate', 'create', [
-      'msg_title' => $sendZoomRegistrantsEmailTemplateTitle,
-      'msg_html' => $msgHtml,
-      'msg_subject' => $msgSubject,
-    ]);
+  //Upgrade function to add the email template id to zoom settings
+  public function upgrade_1004(){
+    CRM_NcnCiviZoom_Utils::forUpgrade1004();
     return TRUE;
   }
 

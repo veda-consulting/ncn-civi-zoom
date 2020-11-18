@@ -54,6 +54,8 @@ function ncn_civi_zoom_civicrm_install() {
 function ncn_civi_zoom_civicrm_postInstall() {
   $settings['base_url'] = "https://api.zoom.us/v2";
   CRM_Core_BAO_Setting::setItem($settings, ZOOM_SETTINGS, 'zoom_settings');
+  CRM_NcnCiviZoom_Utils::forUpgrade1003();
+  CRM_NcnCiviZoom_Utils::forUpgrade1004();
   _ncn_civi_zoom_civix_civicrm_postInstall();
 }
 
@@ -193,10 +195,11 @@ function ncn_civi_zoom_civicrm_validateForm($formName, &$fields, &$files, &$form
   // Throw error if tried to delete the created message template
   if($formName == 'CRM_Admin_Form_MessageTemplates'){
     $submitValues = $form->getVar('_submitValues');
-    if($submitValues['_qf_MessageTemplates_upload'] == 'Delete'){
+    if( !empty($submitValues['_qf_MessageTemplates_upload']) && ($submitValues['_qf_MessageTemplates_upload'] == 'Delete')){
       $FormValues = $form->getVar('_values');
       $msgTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
-      if($FormValues['msg_title'] == $msgTitle){
+      $msgId = CRM_NcnCiviZoom_Utils::getEmailTemplateIdToSendZoomRegistrants();
+      if(($FormValues['msg_title'] == $msgTitle) || ($FormValues['id'] == $msgId)){
         $errors['_qf_default'] = ts("Sorry this template Can't be deleted. This was created by ncn_civi_zoom.");
       }
     }

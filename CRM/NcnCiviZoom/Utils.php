@@ -369,6 +369,15 @@ class CRM_NcnCiviZoom_Utils {
       ));
 
       return $result ['values'][0];
+    }elseif(!empty($id)){
+      $result = civicrm_api3('MessageTemplate', 'get', array(
+        'sequential' => 1,
+        'id' => $id,
+      ));
+
+      return $result ['values'][0];
+    }else{
+      return [];
     }
   }
 
@@ -384,8 +393,9 @@ class CRM_NcnCiviZoom_Utils {
       return;
     }
 
-    $msgTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
-    $emailContent = self::getMessageTemplateDetails($msgTitle);
+    // $msgTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
+    $msgId = CRM_NcnCiviZoom_Utils::getEmailTemplateIdToSendZoomRegistrants();
+    $emailContent = self::getMessageTemplateDetails(null, $msgId);
     if(empty($emailContent)){
       return 'Email Template Not found.';
     }
@@ -429,5 +439,55 @@ class CRM_NcnCiviZoom_Utils {
     $emailSent = CRM_Utils_Mail::send($mailParams);
 
     return $emailSent;
+  }
+
+  public static function forUpgrade1003(){
+    $customGroupName = CRM_NcnCiviZoom_Constants::CG_Event_Zoom_Notes;
+    $customFieldName = CRM_NcnCiviZoom_Constants::CF_Event_Zoom_Notes;
+
+    $customGroupDetails = civicrm_api3('CustomGroup', 'create', [
+      'sequential' => 1,
+      'title' => "Event Zoom Notes",
+      'extends' => "Event",
+      'name' => $customGroupName,
+    ]);
+
+    civicrm_api3('CustomField', 'create', [
+      'sequential' => 1,
+      'custom_group_id' => $customGroupDetails['values'][0]['id'],
+      'label' => "Event Zoom Notes",
+      'name' => $customFieldName,
+      'data_type' => "Memo",
+      'html_type' => "TextArea",
+      'is_view' => 1,
+    ]);
+
+    $sendZoomRegistrantsEmailTemplateTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
+    $msgHtml = "<br> {event_title} <br> {registrants} <br>";
+    $msgSubject = "Recently Joined to the zoom event: {event_title}";
+    civicrm_api3('MessageTemplate', 'create', [
+      'msg_title' => $sendZoomRegistrantsEmailTemplateTitle,
+      'msg_html' => $msgHtml,
+      'msg_subject' => $msgSubject,
+    ]);
+  }
+
+  public static function forUpgrade1004(){
+    $sendZoomRegistrantsEmailTemplateTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
+    $templateDetails = civicrm_api3('MessageTemplate', 'get', [
+      'sequential' => 1,
+      'msg_title' => $sendZoomRegistrantsEmailTemplateTitle,
+    ]);
+    $zoomSettings = self::getZoomSettings();
+    if(!empty($templateDetails['id'])){
+      $zoomSettings['registrants_email_template_id'] = $templateDetails['id'];
+    }
+    CRM_Core_BAO_Setting::setItem($zoomSettings, ZOOM_SETTINGS, 'zoom_settings');
+  }
+
+  public static function getEmailTemplateIdToSendZoomRegistrants(){
+    $settings = self::getZoomSettings();
+    $templateId = CRM_Utils_Array::value('registrants_email_template_id', $settings, NULL);
+    return $templateId;
   }
 }
