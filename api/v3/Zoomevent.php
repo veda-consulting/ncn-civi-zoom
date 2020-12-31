@@ -420,7 +420,7 @@ function civicrm_api3_zoomevent_synczoomdata($params) {
 			$attendees = selectZoomParticipants($emails, $eventId);
 		}
 		foreach ($attendees as $attendee) {
-			$updatedParticpants[] = CRM_NcnCiviZoom_Utils::updateZoomParticipantData($attendee['participant_id'], $list[$attendee['email']]);
+			$updatedParticpants[$attendee['participant_id']] = CRM_NcnCiviZoom_Utils::updateZoomParticipantData($attendee['participant_id'], $list[$attendee['email']]);
 		}
 		$allUpdatedParticpants[$eventId] = $updatedParticpants;
 	}
