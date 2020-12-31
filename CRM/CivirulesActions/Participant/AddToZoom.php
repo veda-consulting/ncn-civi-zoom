@@ -311,6 +311,12 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
     return $returnZoomList;
   }
 
+  /**
+   *
+   * @param $eventId type-integer
+   *
+   * @return $returnZoomList type-array of zoom participants data
+   */
   public static function getZoomParticipantsData($eventId){
     if(empty($eventId)){
       return [];
@@ -326,10 +332,12 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 		$accountId = CRM_NcnCiviZoom_Utils::getZoomAccountIdByEventId($eventId);
 		$settings = CRM_NcnCiviZoom_Utils::getZoomSettings();
 		if(!empty($meetingId)){
+			// Calling Meeting participants report api
 	  	$url = $settings['base_url'] . "/report/meetings/$meetingId/participants?";
 	  	$array_name = 'participants';
 	  	$key_name = 'user_email';
 		} elseif (!empty($webinarId)) {
+			// Calling Webinar absentees api
 	  	$url = $settings['base_url'] . "/past_webinars/$webinarId/absentees?";
 	  	$array_name = 'absentees';
 	  	$key_name = 'email';
@@ -357,6 +365,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 		} while ($result['next_page_token']);
 
 		if (!empty($webinarId)) {
+			// Calling Webinar participants report api also
 	  	$url = $settings['base_url'] . "/report/webinars/$webinarId/participants?";
 	  	$array_name = 'participants';
 	  	$key_name = 'user_email';
@@ -376,12 +385,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 				if(!empty($result[$array_name])){
 					$list = $result[$array_name];
 					foreach ($list as $item) {
-						// if(!empty($returnZoomList[$item[$key_name]])){
-						// 	// Combine the existing data
-						// 	$returnZoomList[$item[$key_name]] = array_merge($returnZoomList[$item[$key_name]], $item);
-						// }else{
-							$returnZoomList[$item[$key_name]] = $item;
-						// }
+						$returnZoomList[$item[$key_name]] = $item;
 					}
 				}
 				$next_page_token = 'next_page_token='.$result['next_page_token'];

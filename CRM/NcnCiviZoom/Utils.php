@@ -491,18 +491,28 @@ class CRM_NcnCiviZoom_Utils {
     return $templateId;
   }
 
+  /**
+   *
+   * @return $syncZoomDataFields type-array of zoom selected zoom fields
+   */
   public static function getSyncZoomDataFields(){
     $settings = self::getZoomSettings();
     $syncZoomDataFields = CRM_Utils_Array::value('sync_zoom_data_fields', $settings, []);
     return $syncZoomDataFields;
   }
 
+  /**
+   * Updates the given zoom data against the partcipant record
+   * It only updates the fields selected in the Sync Zoom Data form
+   *
+   * @param $participantId type-int
+   * @param $zoomData type-array of zoom data
+   * @return bool - updated or not.
+   */
   public static function updateZoomParticipantData($participantId, $zoomData = []){
     if(empty($participantId) || empty($zoomData)){
       return FALSE;
     }
-    CRM_Core_Error::debug_var('updateZoomParticipantData participantId', $participantId);
-    CRM_Core_Error::debug_var('updateZoomParticipantData zoomData', $zoomData);
     // Modifying some keys as per the custom field names
     if(!empty($zoomData['user_email'])){
       $zoomData['email'] = $zoomData['user_email'];
@@ -524,11 +534,9 @@ class CRM_NcnCiviZoom_Utils {
         return FALSE;
     }
 
-    CRM_Core_Error::debug_var('updateZoomParticipantData cGDetails', $cGDetails);
 
     // Get the selected custom fields names
     $syncFields = self::getSyncZoomDataFields();
-    CRM_Core_Error::debug_var('updateZoomParticipantData syncFields', $syncFields);
     $updateParams = [];
     foreach ($syncFields as $syncField => $bool) {
       try {
@@ -543,7 +551,6 @@ class CRM_NcnCiviZoom_Utils {
         CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Utils::updateZoomParticipantData Api:CustomField Action:get error details', $errorMessage);
         continue;
       }
-      CRM_Core_Error::debug_var('updateZoomParticipantData cFDetails', $cFDetails);
 
       if(!empty($zoomData[$syncField])){
         // Creating update params for each custom field
@@ -553,7 +560,6 @@ class CRM_NcnCiviZoom_Utils {
 
     if(!empty($updateParams)){
       $updateParams['entity_id'] = $participantId;
-      CRM_Core_Error::debug_var('updateZoomParticipantData updateParams', $updateParams);
       try{
         $updateResult = civicrm_api3('CustomValue', 'create', $updateParams);
       } catch (CiviCRM_API3_Exception $e) {
@@ -563,7 +569,6 @@ class CRM_NcnCiviZoom_Utils {
         CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomValue Action:create updateParams', $updateParams);
         return FALSE;
       }
-      CRM_Core_Error::debug_var('updateZoomParticipantData updateResult', $updateResult);
       return $updateResult['values'];
     }else{
       return FALSE;

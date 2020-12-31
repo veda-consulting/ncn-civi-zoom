@@ -403,25 +403,22 @@ function civicrm_api3_zoomevent_synczoomdata($params) {
 	$allUpdatedParticpants = [];
 	foreach ($eventIds as $eventId) {
 		$updatedParticpants = [];
-		CRM_Core_Error::debug_var('synczoomdata eventId', $eventId);
 		$list = CRM_CivirulesActions_Participant_AddToZoom::getZoomParticipantsData($eventId);
 		if(empty($list)){
 			continue;
 		}
-		CRM_Core_Error::debug_var('synczoomdata list', $list);
+
 		$emails = [];
 		foreach ($list as $key => $value) {
 			$emails[] = $key;
 		}
-		CRM_Core_Error::debug_var('synczoomdata emails', $emails);
 		$webinarId = getWebinarID($eventId);
 		$meetingId = getMeetingID($eventId);
 		if(!empty($webinarId)){
-			$attendees = selectZoomParticipants($emails, $eventId, "Webinar");
+			$attendees = selectZoomParticipants($emails, $eventId);
 		}elseif(!empty($meetingId)){
-			$attendees = selectZoomParticipants($emails, $eventId, "Meeting");
+			$attendees = selectZoomParticipants($emails, $eventId);
 		}
-		CRM_Core_Error::debug_var('synczoomdata attendees', $attendees);
 		foreach ($attendees as $attendee) {
 			$updatedParticpants[] = CRM_NcnCiviZoom_Utils::updateZoomParticipantData($attendee['participant_id'], $list[$attendee['email']]);
 		}
@@ -435,12 +432,13 @@ function civicrm_api3_zoomevent_synczoomdata($params) {
 
 
 /**
- * Queries for the registered participants for the webinar/meeting.
+ * Selects the zoom participants for for the event(webinar/meeting) using the given array of emails
+ *
  * @param  array emails of registrants from the webinar/meeting
  * @param  int $event the id of the webinar's/meeting's associated event
  * @return array of zoom webinar/meeting registrants in the civi (email, participant_id, contact_id)
  */
-function selectZoomParticipants($emails, $event, $entity = "Webinar") {
+function selectZoomParticipants($emails, $event) {
 
 	$participantsEmails = join("','",$emails);
 
