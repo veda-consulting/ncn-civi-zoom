@@ -74,6 +74,10 @@ More details [here](https://docs.civicrm.org/sysadmin/en/latest/customize/extens
 * Along with that you also need to enter the 'Base url' in the same settings page. Note the Base URL should be set to https://api.zoom.us/v2 if the extension doesn't automatically set it.
 ![Screenshot of add common zoom settings](images/add-common-zoom-settings.jpg)
 
+* Navigate  to the zoom sync data settings as **Events >> Zoom Data Sync Settings**.
+* This page shows the list  of fields available in the zoom api for a Meeting or a Webinar.
+* You can select the fields you wanted to sync with the civicrm participants and save it.
+
 ### Configure CiviRules to send participant information to Zoom
 In order to pass the details over to Zoom the extension creates a new rule action "Add Participant to Zoom". The action uses the zoom details set on the event the participant has registered for and uses that to determine which event, if any, to register them into Zoom. What you will need to do is determine how long a delay, if any, you want before the participant is pushed to zoom.
 
