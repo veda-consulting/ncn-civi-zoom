@@ -81,21 +81,17 @@ class CRM_NcnCiviZoom_Form_DataSync extends CRM_Core_Form {
     }
 
     // Check and create the custom group if not exists
-    $params = array(
-        'sequential' => 1,
-        'name' => CRM_NcnCiviZoom_Constants::CG_ZOOM_DATA_SYNC,
-    );
+    $cGName = CRM_NcnCiviZoom_Constants::CG_ZOOM_DATA_SYNC;
     try {
-        $cGDetails = civicrm_api3('CustomGroup', 'get', $params);
+        $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
     } catch (Exception $e) {
-        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomGroup Action:get error details', $e);
-        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomGroup Action:get params', $params);
+        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess error details', $e);
     }
-    if(empty($cGDetails['values'])){
+    if(empty($cGId)){
         $params = array(
             'title' => "Zoom Data Sync",
             'extends' => "Participant",
-            'name' => CRM_NcnCiviZoom_Constants::CG_ZOOM_DATA_SYNC,
+            'name' => $cGName,
             'table_name' => "civicrm_value_zoom_data_sync",
         );
         try {
@@ -104,11 +100,10 @@ class CRM_NcnCiviZoom_Form_DataSync extends CRM_Core_Form {
             CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomGroup Action:create error details', $e);
             CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomGroup Action:create params', $params);
         }
-        CRM_Core_Error::debug_var('postProcess cGDetails', $cGDetails);
+        $cGId = $cGDetails['id'];
     }
 
     // Check and create the custom fields if not exists
-    $cGId = $cGDetails['id'];
     foreach ($allSelectedFields as $key => $selectedField) {
         $params = array(
             'sequential' => 1,
@@ -140,12 +135,10 @@ class CRM_NcnCiviZoom_Form_DataSync extends CRM_Core_Form {
                 CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomGroup Action:create params', $params);
 
             }
-            CRM_Core_Error::debug_var('postProcess allSelectedFields', $allSelectedFields);
         }
     }
     $zoomSettings = CRM_NcnCiviZoom_Utils::getZoomSettings();
     $zoomSettings['sync_zoom_data_fields'] = $allSelectedFields;
-    CRM_Core_Error::debug_var('postProcess allSelectedFields', $allSelectedFields);
     CRM_Core_BAO_Setting::setItem($zoomSettings, ZOOM_SETTINGS, 'zoom_settings');
     $result['message'] = ts('Your Settings have been saved');
     $result['type'] = 'success';

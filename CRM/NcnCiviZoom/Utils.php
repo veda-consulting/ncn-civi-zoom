@@ -520,20 +520,21 @@ class CRM_NcnCiviZoom_Utils {
     if(!empty($zoomData['id'])){
       $zoomData['registrant_id'] = $zoomData['id'];
     }
-    $params = array(
-        'sequential' => 1,
-        'name' => CRM_NcnCiviZoom_Constants::CG_ZOOM_DATA_SYNC,
-    );
+
+    $cGName = CRM_NcnCiviZoom_Constants::CG_ZOOM_DATA_SYNC;
     try {
-        $cGDetails = civicrm_api3('CustomGroup', 'get', $params);
+        $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
     } catch (Exception $e) {
         // Handle error here.
         $errorMessage = $e->getMessage();
-        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Utils::updateZoomParticipantData Api:CustomGroup Action:get error details', $errorMessage);
-        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Utils::updateZoomParticipantData Api:CustomGroup Action:get params', $params);
+        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Utils::updateZoomParticipantData error details', $errorMessage);
+        CRM_Core_Error::debug_var('Custom Group seems  does not exist- custom group name', $cGName);
         return FALSE;
     }
 
+    if(empty($cGId)){
+      return FALSE;
+    }
 
     // Get the selected custom fields names
     $syncFields = self::getSyncZoomDataFields();
@@ -542,7 +543,7 @@ class CRM_NcnCiviZoom_Utils {
       try {
         $cFDetails = civicrm_api3('CustomField', 'get', [
           'sequential' => 1,
-          'custom_group_id' => $cGDetails['id'],
+          'custom_group_id' => $cGId,
           'name' => $syncField,
         ]);
       } catch (Exception $e) {
@@ -565,8 +566,8 @@ class CRM_NcnCiviZoom_Utils {
       } catch (CiviCRM_API3_Exception $e) {
         // Handle error here.
         $errorMessage = $e->getMessage();
-        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomValue Action:create errorMessage', $errorMessage);
-        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomValue Action:create updateParams', $updateParams);
+        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Utils::updateZoomParticipantData Api:CustomValue Action:create errorMessage', $errorMessage);
+        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Utils::updateZoomParticipantData Api:CustomValue Action:create updateParams', $updateParams);
         return FALSE;
       }
       return $updateResult['values'];
