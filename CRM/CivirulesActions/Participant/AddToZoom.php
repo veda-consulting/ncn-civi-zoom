@@ -311,6 +311,86 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
     return $returnZoomList;
   }
 
+  public static function getZoomParticipantsData($eventId){
+    if(empty($eventId)){
+      return [];
+    }
+    $object = new CRM_CivirulesActions_Participant_AddToZoom;
+	  $webinarId = $object->getWebinarID($eventId);
+	  $meetingId = $object->getMeetingID($eventId);
+	  $returnZoomList = [];
+	  if(empty($webinarId) && empty($meetingId)){
+	  	return $returnZoomList;
+	  }
+		$url = $array_name = $key_name = '';
+		$accountId = CRM_NcnCiviZoom_Utils::getZoomAccountIdByEventId($eventId);
+		$settings = CRM_NcnCiviZoom_Utils::getZoomSettings();
+		if(!empty($meetingId)){
+	  	$url = $settings['base_url'] . "/report/meetings/$meetingId/participants?";
+	  	$array_name = 'participants';
+	  	$key_name = 'user_email';
+		} elseif (!empty($webinarId)) {
+	  	$url = $settings['base_url'] . "/past_webinars/$webinarId/absentees?";
+	  	$array_name = 'absentees';
+	  	$key_name = 'email';
+		}
+	  $token = $object->createJWTToken($accountId);
+
+	  $result = [];
+	  $next_page_token = null;
+		do {
+			$fetchUrl = $url.$next_page_token;
+		  $token = $object->createJWTToken($accountId);
+			$response = Zttp::withHeaders([
+				'Content-Type' => 'application/json;charset=UTF-8',
+				'Authorization' => "Bearer $token"
+			])->get($fetchUrl);
+			$result = $response->json();
+			CRM_Core_Error::debug_var('getZoomParticipantsData zoom result', $result);
+			if(!empty($result[$array_name])){
+				$list = $result[$array_name];
+				foreach ($list as $item) {
+					$returnZoomList[$item[$key_name]] = $item;
+				}
+			}
+			$next_page_token = 'next_page_token='.$result['next_page_token'];
+		} while ($result['next_page_token']);
+
+		if (!empty($webinarId)) {
+	  	$url = $settings['base_url'] . "/report/webinars/$webinarId/participants?";
+	  	$array_name = 'participants';
+	  	$key_name = 'user_email';
+		  $token = $object->createJWTToken($accountId);
+
+		  $result = [];
+		  $next_page_token = null;
+			do {
+				$fetchUrl = $url.$next_page_token;
+			  $token = $object->createJWTToken($accountId);
+				$response = Zttp::withHeaders([
+					'Content-Type' => 'application/json;charset=UTF-8',
+					'Authorization' => "Bearer $token"
+				])->get($fetchUrl);
+				$result = $response->json();
+				CRM_Core_Error::debug_var('getZoomParticipantsData zoom result', $result);
+				if(!empty($result[$array_name])){
+					$list = $result[$array_name];
+					foreach ($list as $item) {
+						// if(!empty($returnZoomList[$item[$key_name]])){
+						// 	// Combine the existing data
+						// 	$returnZoomList[$item[$key_name]] = array_merge($returnZoomList[$item[$key_name]], $item);
+						// }else{
+							$returnZoomList[$item[$key_name]] = $item;
+						// }
+					}
+				}
+				$next_page_token = 'next_page_token='.$result['next_page_token'];
+			} while ($result['next_page_token']);
+		}
+
+    return $returnZoomList;
+  }
+
 	/**
 	 * Method to return the url for additional form processing for action
 	 * and return false if none is needed

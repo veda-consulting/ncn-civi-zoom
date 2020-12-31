@@ -175,6 +175,7 @@ function ncn_civi_zoom_civicrm_navigationMenu(&$menu) {
   $parentId             = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_Navigation', 'Events', 'id', 'name');
   $maxId                = max(array_keys($menu));
   $zoomSettingMaxId     = $maxId+1;
+  $zoomDataSyncSetting  = $maxId+2;
 
   $menu[$parentId]['child'][$zoomSettingMaxId] = array(
         'attributes' => array(
@@ -185,6 +186,19 @@ function ncn_civi_zoom_civicrm_navigationMenu(&$menu) {
           'parentID'  => $parentId,
           'operator'  => NULL,
           'navID'     => $zoomSettingMaxId,
+          'permission'=> 'administer CiviCRM',
+        ),
+  );
+
+  $menu[$parentId]['child'][$zoomDataSyncSetting] = array(
+        'attributes' => array(
+          'label'     => ts('Zoom Data Sync Settings'),
+          'name'      => 'Zoom_Data_Sync_Settings',
+          'url'       => CRM_Utils_System::url('civicrm/Zoom/zoomdatasync', 'reset=1'),
+          'active'    => 1,
+          'parentID'  => $parentId,
+          'operator'  => NULL,
+          'navID'     => $zoomDataSyncSetting,
           'permission'=> 'administer CiviCRM',
         ),
   );

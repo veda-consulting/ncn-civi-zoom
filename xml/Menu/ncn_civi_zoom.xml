@@ -7,6 +7,12 @@
     <access_arguments>access CiviCRM</access_arguments>
   </item>
   <item>
+    <path>civicrm/Zoom/zoomdatasync</path>
+    <page_callback>CRM_NcnCiviZoom_Form_DataSync</page_callback>
+    <title>Settings</title>
+    <access_arguments>access CiviCRM</access_arguments>
+  </item>
+  <item>
      <path>civicrm/ajax/checkeventwithzoom</path>
      <page_callback>CRM_NcnCiviZoom_Page_AJAX::checkEventWithZoom</page_callback>
      <access_arguments>access CiviCRM</access_arguments>
