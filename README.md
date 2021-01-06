@@ -1,10 +1,4 @@
 
-
-
-
-
-
-
 # ncn-civi-zoom
 Civirules Conditions/Actions that talk with Zoom developed for NCN.
 
@@ -64,7 +58,7 @@ More details [here](https://docs.civicrm.org/sysadmin/en/latest/customize/extens
 
 ### Sign into CiviCRM and configure the Zoom settings
 * Install the extension
-* Navigate  to the zoom settings as **Events >> Zoom Settings**.
+* Navigate  to the zoom settings as **Administer >> Zoom Settings >> Zoom Accounts Settings**.
 * Create an entry for the zoom account (Note that the extension supports multiple Accounts)
 ![Screenshot of add new zoom account button](images/add-new-zoom-account.jpg)
 
@@ -74,7 +68,7 @@ More details [here](https://docs.civicrm.org/sysadmin/en/latest/customize/extens
 * Along with that you also need to enter the 'Base url' in the same settings page. Note the Base URL should be set to https://api.zoom.us/v2 if the extension doesn't automatically set it.
 ![Screenshot of add common zoom settings](images/add-common-zoom-settings.jpg)
 
-* Navigate  to the zoom sync data settings as **Events >> Zoom Data Sync Settings**.
+* Navigate  to the zoom sync data settings as **Administer >> Zoom Settings >> Zoom Data Sync Settings**.
 * This page shows the list  of fields available in the zoom api for a Meeting or a Webinar.
 * You can select the fields you wanted to sync with the civicrm participants and save it.
 
