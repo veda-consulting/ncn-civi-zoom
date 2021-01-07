@@ -354,3 +354,117 @@ function civicrm_api3_zoomevent_getrecentzoomregistrants($params) {
 
 	return civicrm_api3_create_success($result, $params, 'Event');
 }
+
+
+/**
+ * Participant.Sync Zoom Data specification
+ *
+ * Makes sure that the verification token is provided as a parameter
+ * in the request to make sure that request is from a reliable source.
+ *
+ * @param array $spec description of fields supported by this API call
+ *
+ * @see https://docs.civicrm.org/dev/en/latest/framework/api-architecture/
+ */
+function _civicrm_api3_zoomevent_synczoomdata_spec(&$spec) {
+	$spec['days'] = [
+    'title' => 'Select Events ended in past x Days',
+    'description' => 'Events ended how many days before you need to select?',
+    'type' => CRM_Utils_Type::T_INT,
+    'api.required' => 1,
+  ];
+}
+
+
+/**
+ * Sync Zoom Webinar Participants Data
+ *
+ * @param array $spec description of fields supported by this API call
+ *
+ * @see https://docs.civicrm.org/dev/en/latest/framework/api-architecture/
+ */
+function civicrm_api3_zoomevent_synczoomdata($params) {
+	$allAttendees = [];
+	$days = $params['days'];
+	$pastDateTimeFull = new DateTime();
+	$pastDateTimeFull = $pastDateTimeFull->modify("-".$days." days");
+	$pastDate = $pastDateTimeFull->format('Y-m-d');
+	$currentDate = date('Y-m-d');
+
+  $apiResult = civicrm_api3('Event', 'get', [
+    'sequential' => 1,
+    'end_date' => ['BETWEEN' => [$pastDate, $currentDate]],
+  ]);
+	$allEvents = $apiResult['values'];
+	$eventIds = [];
+	foreach ($allEvents as $key => $value) {
+		$eventIds[] = $value['id'];
+	}
+	$allUpdatedParticpants = [];
+	foreach ($eventIds as $eventId) {
+		$updatedParticpants = [];
+		$list = CRM_CivirulesActions_Participant_AddToZoom::getZoomParticipantsData($eventId);
+		if(empty($list)){
+			continue;
+		}
+
+		$emails = [];
+		foreach ($list as $key => $value) {
+			$emails[] = $key;
+		}
+		$webinarId = getWebinarID($eventId);
+		$meetingId = getMeetingID($eventId);
+		if(!empty($webinarId)){
+			$attendees = selectZoomParticipants($emails, $eventId);
+		}elseif(!empty($meetingId)){
+			$attendees = selectZoomParticipants($emails, $eventId);
+		}
+		foreach ($attendees as $attendee) {
+			$updatedParticpants[$attendee['participant_id']] = CRM_NcnCiviZoom_Utils::updateZoomParticipantData($attendee['participant_id'], $list[$attendee['email']]);
+		}
+		$allUpdatedParticpants[$eventId] = $updatedParticpants;
+	}
+
+	$return['all_updated_participants'] = $allUpdatedParticpants;
+
+	return civicrm_api3_create_success($return, $params, 'Event');
+}
+
+
+/**
+ * Selects the zoom participants for for the event(webinar/meeting) using the given array of emails
+ *
+ * @param  array emails of registrants from the webinar/meeting
+ * @param  int $event the id of the webinar's/meeting's associated event
+ * @return array of zoom webinar/meeting registrants in the civi (email, participant_id, contact_id)
+ */
+function selectZoomParticipants($emails, $event) {
+
+	$participantsEmails = join("','",$emails);
+
+	$selectAttendees = "
+		SELECT
+			e.email,
+			p.contact_id,
+			p.id AS participant_id
+		FROM civicrm_participant p
+		LEFT JOIN civicrm_email e ON p.contact_id = e.contact_id
+		WHERE
+			e.email IN ('$participantsEmails') AND
+	    	p.event_id = {$event}";
+
+	// Run query
+	$query = CRM_Core_DAO::executeQuery($selectAttendees);
+
+	$attendees = [];
+
+	while($query->fetch()) {
+		array_push($attendees, [
+			'email' => $query->email,
+			'contact_id' => $query->contact_id,
+			'participant_id' => $query->participant_id
+		]);
+	}
+
+	return $attendees;
+}

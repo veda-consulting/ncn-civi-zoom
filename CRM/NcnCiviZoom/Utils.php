@@ -490,4 +490,89 @@ class CRM_NcnCiviZoom_Utils {
     $templateId = CRM_Utils_Array::value('registrants_email_template_id', $settings, NULL);
     return $templateId;
   }
+
+  /**
+   *
+   * @return $syncZoomDataFields type-array of zoom selected zoom fields
+   */
+  public static function getSyncZoomDataFields(){
+    $settings = self::getZoomSettings();
+    $syncZoomDataFields = CRM_Utils_Array::value('sync_zoom_data_fields', $settings, []);
+    return $syncZoomDataFields;
+  }
+
+  /**
+   * Updates the given zoom data against the partcipant record
+   * It only updates the fields selected in the Sync Zoom Data form
+   *
+   * @param $participantId type-int
+   * @param $zoomData type-array of zoom data
+   * @return bool - updated or not.
+   */
+  public static function updateZoomParticipantData($participantId, $zoomData = []){
+    if(empty($participantId) || empty($zoomData)){
+      return FALSE;
+    }
+    // Modifying some keys as per the custom field names
+    if(!empty($zoomData['user_email'])){
+      $zoomData['email'] = $zoomData['user_email'];
+    }
+    if(!empty($zoomData['id'])){
+      $zoomData['registrant_id'] = $zoomData['id'];
+    }
+
+    $cGName = CRM_NcnCiviZoom_Constants::CG_ZOOM_DATA_SYNC;
+    try {
+        $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
+    } catch (Exception $e) {
+        // Handle error here.
+        $errorMessage = $e->getMessage();
+        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Utils::updateZoomParticipantData error details', $errorMessage);
+        CRM_Core_Error::debug_var('Custom Group seems  does not exist- custom group name', $cGName);
+        return FALSE;
+    }
+
+    if(empty($cGId)){
+      return FALSE;
+    }
+
+    // Get the selected custom fields names
+    $syncFields = self::getSyncZoomDataFields();
+    $updateParams = [];
+    foreach ($syncFields as $syncField => $bool) {
+      try {
+        $cFDetails = civicrm_api3('CustomField', 'get', [
+          'sequential' => 1,
+          'custom_group_id' => $cGId,
+          'name' => $syncField,
+        ]);
+      } catch (Exception $e) {
+        // Handle error here.
+        $errorMessage = $e->getMessage();
+        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Utils::updateZoomParticipantData Api:CustomField Action:get error details', $errorMessage);
+        continue;
+      }
+
+      if(!empty($zoomData[$syncField])){
+        // Creating update params for each custom field
+        $updateParams['custom_'.$cFDetails['id']] = $zoomData[$syncField];
+      }
+    }
+
+    if(!empty($updateParams)){
+      $updateParams['entity_id'] = $participantId;
+      try{
+        $updateResult = civicrm_api3('CustomValue', 'create', $updateParams);
+      } catch (CiviCRM_API3_Exception $e) {
+        // Handle error here.
+        $errorMessage = $e->getMessage();
+        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Utils::updateZoomParticipantData Api:CustomValue Action:create errorMessage', $errorMessage);
+        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Utils::updateZoomParticipantData Api:CustomValue Action:create updateParams', $updateParams);
+        return FALSE;
+      }
+      return $updateResult['values'];
+    }else{
+      return FALSE;
+    }
+  }
 }
