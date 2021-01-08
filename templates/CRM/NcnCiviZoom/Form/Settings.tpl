@@ -32,7 +32,7 @@
   {if !$id}
     {if !$deleteAction}
       <div class="crm-submit-buttons">
-         <a class="button crm-button" href="{crmURL p='civicrm/Zoom/settings' q='act=1&reset=1'}" id="newAccount"><i class="crm-i fa-plus-circle"></i> {ts}Add New zoom account{/ts}</a>
+         <a class="button crm-button" href="{crmURL p='civicrm/Zoom/zoomaccounts' q='act=1&reset=1'}" id="newAccount"><i class="crm-i fa-plus-circle"></i> {ts}Add New zoom account{/ts}</a>
       </div>
       <h1>List of configured zoom accounts</h1>
     {/if}
