@@ -130,6 +130,7 @@ class CRM_NcnCiviZoom_Form_DataSync extends CRM_Core_Form {
                 'data_type' => "String",
                 'html_type' => "Text",
                 'column_name' => $key,
+                'is_searchable' => 1,
             );
             try {
                 $cFDetails= civicrm_api3('CustomField', 'create', $params);
