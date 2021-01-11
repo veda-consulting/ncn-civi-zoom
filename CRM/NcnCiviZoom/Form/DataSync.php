@@ -120,6 +120,9 @@ class CRM_NcnCiviZoom_Form_DataSync extends CRM_Core_Form {
 
         if(empty($cFDetails['values'])){
             $cfLabel = ucwords(str_replace( '_', ' ', $key));
+            if($key == 'duration'){
+                $cfLabel .= ' (in mins)';
+            }
             $params = array(
                 'custom_group_id' => $cGId,
                 'label' => $cfLabel,
@@ -127,6 +130,7 @@ class CRM_NcnCiviZoom_Form_DataSync extends CRM_Core_Form {
                 'data_type' => "String",
                 'html_type' => "Text",
                 'column_name' => $key,
+                'is_searchable' => 1,
             );
             try {
                 $cFDetails= civicrm_api3('CustomField', 'create', $params);

@@ -21,7 +21,7 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
     $this->_act = CRM_Utils_Request::retrieve('act', 'Positive', $this);
     //setting the user context to zoom accounts list page
     $session = CRM_Core_Session::singleton();
-    $session->pushUserContext(CRM_Utils_System::url('civicrm/Zoom/settings',"reset=1"));
+    $session->pushUserContext(CRM_Utils_System::url('civicrm/Zoom/zoomaccounts',"reset=1"));
     parent::preProcess();
   }
 
@@ -138,8 +138,8 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
           $rows[$Id]['secret_key'] = substr($values['secret_key'], 0, 4).(str_repeat('*',strlen($values['secret_key']) - 4));
         }
         if (!$deleteAction) {
-          $editURL = CRM_Utils_System::href('Edit', 'civicrm/Zoom/settings', 'reset=1&act='.$editAction.'&id='.$Id);
-          $deleteURL = CRM_Utils_System::href('Delete', 'civicrm/Zoom/settings', 'reset=1&act='.$delAction.'&id='.$Id);
+          $editURL = CRM_Utils_System::href('Edit', 'civicrm/Zoom/zoomaccounts', 'reset=1&act='.$editAction.'&id='.$Id);
+          $deleteURL = CRM_Utils_System::href('Delete', 'civicrm/Zoom/zoomaccounts', 'reset=1&act='.$delAction.'&id='.$Id);
           $rows[$Id]['action'] = sprintf("<span>%s &nbsp;/&nbsp; %s</span>", $editURL, $deleteURL, $Id);
           $testResult = self::testAPIConnectionSettings($Id);
           $ext = 'ncn-civi-zoom';
@@ -207,7 +207,7 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
     $values = $this->exportValues();
     if ($buttonName == $this->getButtonName('upload', 'done')) {
       $result = self::testAPIConnectionSettings($this->_id);
-      $redirectUrl = CRM_Utils_System::url('civicrm/Zoom/settings', 'reset=1&act='.$this->_act."&id=".$this->_id);
+      $redirectUrl = CRM_Utils_System::url('civicrm/Zoom/zoomaccounts', 'reset=1&act='.$this->_act."&id=".$this->_id);
     } else {
       $editAction = CRM_Core_Action::UPDATE;
       $delAction = CRM_Core_Action::DELETE;
@@ -267,7 +267,7 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
         $result['message'] = ts('Your Settings have been saved');
         $result['type'] = 'success';
       }
-      $redirectUrl    = CRM_Utils_System::url('civicrm/Zoom/settings', 'reset=1');
+      $redirectUrl    = CRM_Utils_System::url('civicrm/Zoom/zoomaccounts', 'reset=1');
     }
 
     CRM_Core_Session::setStatus($result['message'], ts('Zoom Settings'), $result['type']);
