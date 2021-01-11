@@ -120,6 +120,9 @@ class CRM_NcnCiviZoom_Form_DataSync extends CRM_Core_Form {
 
         if(empty($cFDetails['values'])){
             $cfLabel = ucwords(str_replace( '_', ' ', $key));
+            if($key == 'duration'){
+                $cfLabel .= ' (in mins)';
+            }
             $params = array(
                 'custom_group_id' => $cGId,
                 'label' => $cfLabel,

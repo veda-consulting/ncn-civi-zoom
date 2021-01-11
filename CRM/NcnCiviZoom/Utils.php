@@ -520,6 +520,10 @@ class CRM_NcnCiviZoom_Utils {
     if(!empty($zoomData['id'])){
       $zoomData['registrant_id'] = $zoomData['id'];
     }
+    // Converting the zoom duration into minutes
+    if(!empty($zoomData['duration'])){
+      $zoomData['duration'] = intdiv($zoomData['duration'], 60);
+    }
 
     $cGName = CRM_NcnCiviZoom_Constants::CG_ZOOM_DATA_SYNC;
     try {
