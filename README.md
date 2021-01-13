@@ -1,4 +1,5 @@
 
+
 # ncn-civi-zoom
 Civirules Conditions/Actions that talk with Zoom developed for NCN.
 
@@ -70,7 +71,7 @@ More details [here](https://docs.civicrm.org/sysadmin/en/latest/customize/extens
 
 * Navigate  to the zoom sync data settings as **Administer >> Zoom Settings >> Zoom Data Sync Settings**.
 * This page shows the list  of fields available in the zoom api for a Meeting or a Webinar.
-* You can select the fields you wanted to sync with the civicrm participants and save it.
+* You can select the fields you wanted to sync with the civicrm participants and save it. These selected fields are created as custom fields under the custom group 'Zoom Data Sync' against particpants.
 
 ### Configure CiviRules to send participant information to Zoom
 In order to pass the details over to Zoom the extension creates a new rule action "Add Participant to Zoom". The action uses the zoom details set on the event the participant has registered for and uses that to determine which event, if any, to register them into Zoom. What you will need to do is determine how long a delay, if any, you want before the participant is pushed to zoom.
@@ -93,12 +94,26 @@ Once you've decided this you can create a new CiviRule as per the below.
 ## Creating Scheduled Jobs
 ### Scheduled Job for Zoom attendance
 * Once you've created a zoom event, you need to create a scheduled job for that event. The Api Entity should be **Zoomevent** and the api action should be **Generatezoomattendance**. This api has only one parameter which is ***days*** this will be used to pickup the events which ended up within that number of days given(using the event's end date). For example if the days=10, then events(in your civi) ended within past 10 days from current date will be picked up and only for these events the participants' status  will be picked up from the zoom and updated in the civicrm. You can schedule the Job as frequent  as you need it to run.
-* An example has been done below![Screenshot of Scheduled Job](images/generate-zoom-attendance.PNG)
+* It calls the following zoom apis:
+  1. Get Webinar Absentees
+  2. Get Meeting Participants
+* It updates the partcipant status accordingly as Attended
+An example of the scheduled job setup has been done below![Screenshot of Scheduled Job](images/generate-zoom-attendance.PNG)
 
 ### Scheduled Job for emailing new Zoom registrants
 * Once you've created a zoom event, you need to create a scheduled job for that event. The Api Entity should be **Zoomevent** and the api action should be **Getrecentzoomregistrants**. This api has two parameters one is ***mins*** i.e registrants who registered that many 'minutes'  before will be filtered and their details(such as First name, Last name and Email) will be updated to the 'Event Zoom Notes' custom field under that civi event. The other parameter is the ***to_emails*** , which is the Email address to which you want the filtered regitrants list could be sent, for multiple email addresses seperate each by a comma(,) symbol.
-* An example has been done below![Screenshot of Scheduled Job](images/email-zoom-registrants.PNG)
+* It calls the following zoom apis:
+  1. List Webinar Registrants
+  2. List Meeting Registrants
+ * It also updates the details these registrants' details to the custom field 'Zoom Event Notes' of the corressponding event.
+An example of the scheduled job setup has been done below![Screenshot of Scheduled Job](images/email-zoom-registrants.PNG)
 
 ### Scheduled Job for syncing Zoom data with with civi participants
 * Once you've created a zoom event, you need to create a scheduled job for that event. The Api Entity should be **Zoomevent** and the api action should be **Synczoomdata**. This api has only one parameter which is ***days*** this will be used to pickup the events which ended up within that number of days given(using the event's end date). For example if the days=10, then events(in your civi) ended within past 10 days from current date will be picked up and only for these events the participants' data will be synced from zoom and updated in the civicrm. You can schedule the Job as frequent  as you need it to run.
-* An example has been done below![Screenshot of Scheduled Job](images/sync-zoom-data.PNG)
+* It calls the following zoom apis:
+  1. Get Meeting Participant Report
+  2. Get Webinar Participant Report
+  3. Get Webinar Absentees
+* It updates the details obtained from the above zoom apis to the custom  group 'Zoom Data Sync'.
+* The fields that would be updated against the participant record can be controlled by the selecting the custom fields in the page 'Zoom Data Sync Settings'.
+* An example of the scheduled job setup has been done below![Screenshot of Scheduled Job](images/sync-zoom-data.PNG)
