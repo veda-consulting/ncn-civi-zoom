@@ -115,5 +115,5 @@ An example of the scheduled job setup has been done below![Screenshot of Schedul
   2. Get Webinar Participant Report
   3. Get Webinar Absentees
 * It updates the details obtained from the above zoom apis to the custom  group 'Zoom Data Sync'.
-* The fields that would be updated agianst the participant record can be controlled by the selecting the custom fields in the page 'Zoom Data Sync Settings'.
+* The fields that would be updated against the participant record can be controlled by the selecting the custom fields in the page 'Zoom Data Sync Settings'.
 * An example of the scheduled job setup has been done below![Screenshot of Scheduled Job](images/sync-zoom-data.PNG)
