@@ -71,7 +71,7 @@ More details [here](https://docs.civicrm.org/sysadmin/en/latest/customize/extens
 
 * Navigate  to the zoom sync data settings as **Administer >> Zoom Settings >> Zoom Data Sync Settings**.
 * This page shows the list  of fields available in the zoom api for a Meeting or a Webinar.
-* You can select the fields you wanted to sync with the civicrm participants and save it. These selected fields are created as custom fields against particpants and they will be stored in the custom  group 'Zoom Data Sync'.
+* You can select the fields you wanted to sync with the civicrm participants and save it. These selected fields are created as custom fields under the custom group 'Zoom Data Sync' against particpants.
 
 ### Configure CiviRules to send participant information to Zoom
 In order to pass the details over to Zoom the extension creates a new rule action "Add Participant to Zoom". The action uses the zoom details set on the event the participant has registered for and uses that to determine which event, if any, to register them into Zoom. What you will need to do is determine how long a delay, if any, you want before the participant is pushed to zoom.
