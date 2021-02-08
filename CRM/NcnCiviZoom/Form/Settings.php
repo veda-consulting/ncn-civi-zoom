@@ -67,7 +67,12 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
         $this->zoomName = 'New';
         $this->assign('zoomName', $this->zoomName);
       }
+
+      $this->add('hidden', 'id', $this->_id);
       $this->add('text', 'name', ts('Account Name'), array('size' => 48,), TRUE);
+      $this->add('text', 'user_id', ts('User Email'), array(
+        'size' => 48,
+      ), FALSE);
       $this->add('password', 'api_key', ts('Api Key'), array(
         'size' => 48,
       ), TRUE);
@@ -155,8 +160,16 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
       }
     }
 
-    $headers = [ts('Id'), ts('Account Name'), ts('Api Key'), ts('Secret Key'), ts('Action'), ts('Connected')];
-    $columnNames = array('id', 'name', 'api_key', 'secret_key', 'action', 'connected');
+    $headers = [ts('Id')
+      , ts('Account Name')
+      , ts('User Email')
+      , ts('Api Key')
+      , ts('Secret Key')
+      , ts('Action')
+      , ts('Connected')
+    ];
+
+    $columnNames = array('id', 'name', 'user_id', 'api_key', 'secret_key', 'action', 'connected');
     // export form elements
     $defaults = CRM_NcnCiviZoom_Utils::getZoomSettings($this->_id);
     $this->assign('act', $this->_act);
@@ -167,7 +180,40 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
     $this->assign('columnNames',$columnNames);
     //Set default Values
     $this->setDefaults($defaults);
+
+    $this->addFormRule(array('CRM_NcnCiviZoom_Form_Settings', 'formRule'));
     parent::buildQuickForm();
+  }
+
+  public function formRule($fields) {
+    $errors = array();
+
+    if (!empty($fields['user_id'])) {
+      $tableName = CRM_NcnCiviZoom_Constants::ZOOM_ACCOUNT_SETTINGS;
+      $zoomAccountByUser = CRM_Core_Dao::singleValueQuery("SELECT id FROM {$tableName} WHERE user_id = %1", array(1 => array($fields['user_id'], 'String')));
+
+      $duplicateAccount = FALSE;
+
+      //For update action
+      if (!empty($zoomAccountByUser)
+        && !empty($fields['id'])
+        && $fields['id'] != $zoomAccountByUser ) {
+
+        $duplicateAccount = TRUE;
+      }
+
+      // For create action
+      if (!empty($zoomAccountByUser) && empty($fields['id'])) {
+        $duplicateAccount = TRUE;
+      }
+
+
+      if ($duplicateAccount) {
+        $userId = $fields['user_id'];
+        $errors['user_id'] = ts("Duplicate User Email. User Email {$userId} already linked to other account. Please check the user email");
+      }
+    }
+    return empty($errors) ? TRUE : $errors;
   }
 
   /**
@@ -224,9 +270,17 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
           1 => array($zoom_name, 'String'),
           2 => array($api_key, 'String'),
           3 => array($secret_key, 'String'),
-          4 => array($this->_id, 'Integer')
+          4 => array($this->_id, 'Integer'),
         );
-        $query = "UPDATE {$tableName} SET name = %1, api_key = %2, secret_key = %3 WHERE id = %4";
+
+        $extraParams = NULL;
+        $user_id     = $values['user_id'];
+        if (!empty($user_id)) {
+          $extraParams = ", user_id = %5";
+          $queryParams[5] = array($user_id, 'String');
+        }
+
+        $query = "UPDATE {$tableName} SET name = %1, api_key = %2, secret_key = %3 {$extraParams} WHERE id = %4";
         CRM_Core_Dao::executeQuery($query, $queryParams);
 
         $result['message'] = ts('Zoom account settings have been updated');
@@ -242,7 +296,16 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
           2 => array($api_key, 'String'),
           3 => array($secret_key, 'String'),
         );
-        $query = "INSERT INTO {$tableName} (name, api_key, secret_key) VALUES (%1, %2 , %3)";
+
+        $extraColumn = $extraValue = NULL;
+        $user_id     = $values['user_id'];
+        if (!empty($user_id)) {
+          $extraColumn = ", user_id";
+          $extraValue = ", %4";
+          $queryParams[4] = array($user_id, 'String');
+        }
+
+        $query = "INSERT INTO {$tableName} (name, api_key, secret_key {$extraColumn}) VALUES (%1, %2 , %3 {$extraValue})";
         CRM_Core_Dao::executeQuery($query, $queryParams);
         $result['message'] = ts('Your new zoom account settings have been saved');
         $result['type'] = 'success';

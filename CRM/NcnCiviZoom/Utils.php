@@ -182,7 +182,7 @@ class CRM_NcnCiviZoom_Utils {
       'Select the zoom account',
       $zoomList,
       FALSE,
-      array('multiple' => FALSE, 'id' => 'zoom_account_list')
+      array('class' => 'medium', 'multiple' => FALSE, 'id' => 'zoom_account_list')
     );
 
     $customIds['Webinar'] = self::getWebinarCustomField();
@@ -577,6 +577,74 @@ class CRM_NcnCiviZoom_Utils {
       return $updateResult['values'];
     }else{
       return FALSE;
+    }
+  }
+
+  // MV: function to validate the meeting/webinar belongs to the account user id
+  public static function validateMeetingWebinarByUserId($params) {
+    if (!empty($params['user_id']) && !empty($params["entityID"])) {
+      $entity = $params['entity'];
+      $eventList = CRM_NcnCiviZoom_Utils::getMeetingsWebinarsByUserId($params);
+
+      // If API call code 200 ( success ) but error with user id then return error message.
+      if (!isset($eventList['page_size']) && !empty($eventList['message'])) {
+        return $eventList;
+      }
+      // else if user doesn't have any meeting or webinar then return status message
+      elseif (isset($eventList['page_size']) && empty($eventList['total_records'])) {
+        return ['message' => "No {$entity} found for this user."];
+      }
+      else{
+        $key = ($params['entity'] == "Meeting") ? 'meetings' : 'webinars';
+
+        $userID = CRM_Utils_Array::value('user_id', $params);
+        $entityID = CRM_Utils_Array::value('entityID', $params);
+        $entityList = CRM_Utils_Array::value("{$key}_options", $eventList);
+
+        if (empty($entityList)) {
+          return ['message' => "No {$entity} found for this user."];
+        }
+        // if meeting/webinar id not belong to this user then return error.
+        if (!array_key_exists($entityID, $entityList)) {
+          return ['message' => "{$entity} ID ($entityID) not found for this user ID: {$userID} "];
+        }
+
+        return $eventList;
+      }
+    }
+
+    return FALSE;
+  }
+
+  // MV: function to get list of meetings/webinars by account user id.
+  public static function getMeetingsWebinarsByUserId($params) {
+    if (!empty($params['user_id']) && !empty($params["entity"])) {
+      $entity = ($params['entity'] == "Meeting") ? 'meetings' : 'webinars';
+
+      $settings = CRM_NcnCiviZoom_Utils::getZoomSettings($params["account_id"]);
+      $url = $settings['base_url'] . "/users/".$params['user_id']."/".$entity."/";
+      // fetch all Meeting/Webinar belong to this user.
+      list($isResponseOK, $result) = CRM_CivirulesActions_Participant_AddToZoom::requestZttpWithHeader($params["account_id"], $url);
+
+      CRM_Core_Error::debug_var('getMeetingsWebinarsByUserId-isResponseOK', $isResponseOK);
+
+      if($isResponseOK){
+        $eventList = CRM_Utils_Array::value($entity, $result);
+
+        if (empty($eventList) && !empty($result['message'])) {
+          return ["status" => 0, "message" => $result['message']];
+        }
+
+        $entityOptions = [];
+        foreach ($eventList as $key => $value) {
+          $entityOptions[$value['id']] = $value['topic'];
+        }
+
+        $result["{$entity}_options"] = $entityOptions;
+        return $result;
+      } else {
+        return ["status" => 0, "message" => "User ID: ".$params["user_id"]." does not exists"];
+      }
     }
   }
 }

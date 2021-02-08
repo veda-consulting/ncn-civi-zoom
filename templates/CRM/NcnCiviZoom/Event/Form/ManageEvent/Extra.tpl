@@ -21,18 +21,12 @@ CRM.$(function($) {
 		$( document ).ajaxComplete(function(event, xhr, settings) {
 			var Url = settings.url;
 			if (Url.indexOf("custom") >= 0) {
-				//Moving the zoom account id above the Meeting Id field
-				$("input[name^='{/literal}{$accountId}{literal}']").parent().parent().insertBefore($("input[name^='{/literal}{$customIdMeeting}{literal}']").parent().parent());
 
-				//Moving the zoom account id above the Webinar Id field
-				$("input[name^='{/literal}{$accountId}{literal}']").parent().parent().insertBefore($("input[name^='{/literal}{$customIdWebinar}{literal}']").parent().parent());
-
-				//Adding the styles for Zoom Account list field
-				$("#zoom_account_list_full").css({"margin-left":"30px" , "width": "300px"});
+				// Move zoom account list drop down before webinar field.
+				$("#zoom_account_list_full").insertBefore($("input[name^='{/literal}{$customIdWebinar}{literal}']").parent().parent());
 
 				//Hiding the Account Id field
-				$("#zoom_account_list_full").insertBefore($("input[name^='{/literal}{$accountId}{literal}']").parent().parent());
-				$("input[name^='{/literal}{$accountId}{literal}']").parent().parent().hide();
+				$("label[for^='{/literal}{$accountId}{literal}']").parent().parent().hide();
 
 				//Adding message box to webinar custom field
 				$("<span id='msgbox_webinar' style='display:none'></span>").insertAfter($("input[name^='{/literal}{$customIdWebinar}{literal}']"));

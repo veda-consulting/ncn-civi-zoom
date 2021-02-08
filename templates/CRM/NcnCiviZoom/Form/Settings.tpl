@@ -17,6 +17,12 @@
         <td class="">{$form.name.html}</td>
       </tr>
       <tr class="custom_field-row">
+        <td class="label">{$form.user_id.label}</td>
+        <td class="">{$form.user_id.html}
+          <div class="description">Please enter valid account user email if you know, otherwise leave it blank. <br /> If user id presents, then additional validation check that given Meeting/Webinar id is belong to given user account.</div>
+        </td>
+      </tr>
+      <tr class="custom_field-row">
         <td class="label">{$form.api_key.label}</td>
         <td class="">{$form.api_key.html}</td>
       </tr>
