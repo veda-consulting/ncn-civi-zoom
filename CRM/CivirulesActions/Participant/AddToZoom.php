@@ -427,4 +427,19 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
   		return FALSE;
 	}
 
+  // MV: Add Zttp call function
+  public function requestZttpWithHeader($accountId, $url) {
+
+    $object = new CRM_CivirulesActions_Participant_AddToZoom;
+    $token  = $object->createJWTToken($accountId);
+    $request = Zttp::withHeaders([
+      'Content-Type' => 'application/json;charset=UTF-8',
+      'Authorization' => "Bearer $token"
+    ])->get($url);
+
+    $isRequestOK = $request->isOk();
+    $result = $request->json();
+
+    return [$isRequestOK, $result];
+  }
 }
