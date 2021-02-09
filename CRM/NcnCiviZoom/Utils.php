@@ -560,6 +560,9 @@ class CRM_NcnCiviZoom_Utils {
       if(!empty($zoomData[$syncField])){
         // Creating update params for each custom field
         $updateParams['custom_'.$cFDetails['id']] = $zoomData[$syncField];
+        if($syncField == 'join_time' || $syncField == 'leave_time') {
+          $updateParams['custom_'.$cFDetails['id']] = date('YmdHis', strtotime($zoomData[$syncField]));
+        }
       }
     }
 

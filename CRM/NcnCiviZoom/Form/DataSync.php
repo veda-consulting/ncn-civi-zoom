@@ -132,6 +132,13 @@ class CRM_NcnCiviZoom_Form_DataSync extends CRM_Core_Form {
                 'column_name' => $key,
                 'is_searchable' => 1,
             );
+            if($key == 'join_time' || $key == 'leave_time'){
+                $params['data_type'] = 'Date';
+                $params['html_type'] = 'Select Date';
+                $params['is_search_range'] = 1;
+                $params['date_format'] = "yy-mm-dd";
+                $params['time_format'] = 1;
+            }
             try {
                 $cFDetails= civicrm_api3('CustomField', 'create', $params);
             } catch (Exception $e) {
