@@ -206,6 +206,26 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 		}
 
 	  $token = $object->createJWTToken($params["account_id"]);
+
+    //MV: Additional Check by user id if configured in settings
+    $userID = CRM_Utils_Array::value('user_id', $settings);
+    if (!empty($userID)) {
+      // Does Meeting/Webinar id is belongs to given user ?. If not return validation error.
+      $userParams = $params;
+      $userParams['user_id'] = $userID;
+      $userDetails = CRM_NcnCiviZoom_Utils::validateMeetingWebinarByUserId($userParams);
+
+      // If we cannot find user details then return error
+      if (empty($userDetails)) {
+        return ["status" => 0, "message" => "Please verify the User ID"];
+      }
+      // else if user id exists and meeting/webinar not belong to this user then return.
+      elseif (!empty($userDetails['message'])) {
+        return ["status" => 0, "message" => $userDetails['message']];
+      }
+    }
+    //END
+
 		$response = Zttp::withHeaders([
 			'Content-Type' => 'application/json;charset=UTF-8',
 			'Authorization' => "Bearer $token"
@@ -407,4 +427,19 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
   		return FALSE;
 	}
 
+  // MV: Add Zttp call function
+  public function requestZttpWithHeader($accountId, $url) {
+
+    $object = new CRM_CivirulesActions_Participant_AddToZoom;
+    $token  = $object->createJWTToken($accountId);
+    $request = Zttp::withHeaders([
+      'Content-Type' => 'application/json;charset=UTF-8',
+      'Authorization' => "Bearer $token"
+    ])->get($url);
+
+    $isRequestOK = $request->isOk();
+    $result = $request->json();
+
+    return [$isRequestOK, $result];
+  }
 }

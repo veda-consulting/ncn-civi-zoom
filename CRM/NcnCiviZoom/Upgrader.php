@@ -172,4 +172,12 @@ class CRM_NcnCiviZoom_Upgrader extends CRM_NcnCiviZoom_Upgrader_Base {
     return TRUE;
   }
 
+  //Upgrade function to add the email template id to zoom settings
+  public function upgrade_1005(){
+    $tableName = CRM_NcnCiviZoom_Constants::ZOOM_ACCOUNT_SETTINGS;
+    if (!CRM_Core_DAO::checkFieldExists($tableName, 'user_id')) {
+      CRM_Core_DAO::executeQuery("ALTER TABLE {$tableName} ADD COLUMN user_id VARCHAR(128)");
+    }
+    return TRUE;
+  }
 }
