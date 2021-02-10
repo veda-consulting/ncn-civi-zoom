@@ -7,7 +7,7 @@
     <author>Rupert Amodia</author>
     <email>hello@vedaconsulting.co.uk</email>
   </maintainer>
-  <releaseDate>2021-01-08</releaseDate>
+  <releaseDate>2021-02-10</releaseDate>
   <version>2.2</version>
   <requires>
     <ext>org.civicoop.civirules</ext>

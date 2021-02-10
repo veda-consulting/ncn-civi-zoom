@@ -1,5 +1,6 @@
 
 
+
 # ncn-civi-zoom
 Civirules Conditions/Actions that talk with Zoom developed for NCN.
 
@@ -116,4 +117,7 @@ An example of the scheduled job setup has been done below![Screenshot of Schedul
   3. Get Webinar Absentees
 * It updates the details obtained from the above zoom apis to the custom  group 'Zoom Data Sync'.
 * The fields that would be updated against the participant record can be controlled by the selecting the custom fields in the page 'Zoom Data Sync Settings'.
+* Also for  the entry and exit time we pickup the first  entry time and last leaving time in case the participant has joined and left the meeting/webinar more than once.
+* For each entry/exit, the duration will also be stored against the participant record. And such that a maximum of 20 durations will be stored against a participant record.
+* Apart from that the total duration will be stored in a separate field.
 * An example of the scheduled job setup has been done below![Screenshot of Scheduled Job](images/sync-zoom-data.PNG)
