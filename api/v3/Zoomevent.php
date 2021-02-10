@@ -408,8 +408,26 @@ function civicrm_api3_zoomevent_synczoomdata($params) {
 			continue;
 		}
 
+		$consolidatedList = [];
+		foreach ($list as $email => $participant) {
+			$participantDetails = $participant[0];
+			// Picking the first entry time
+			$firstEntry = key(array_slice($participant, 0, 1, true));
+			// Picking the last last leaving time
+			$lastEntry = key(array_slice($participant, -1, 1, true));
+			$participantDetails['join_time'] = $participant[$firstEntry]['join_time'];
+			$participantDetails['leave_time'] = $participant[$lastEntry]['leave_time'];
+			$totalDuration = 0;
+			foreach ($participant as $key => $eachJoin) {
+				$totalDuration += $eachJoin['duration'];
+				$participantDetails['duration_'.($key+1)] = $eachJoin['duration'];
+			}
+			$participantDetails['duration'] = $totalDuration;
+			$consolidatedList[$email] = $participantDetails;
+		}
+
 		$emails = [];
-		foreach ($list as $key => $value) {
+		foreach ($consolidatedList as $key => $value) {
 			$emails[] = $key;
 		}
 		$webinarId = getWebinarID($eventId);
@@ -420,7 +438,7 @@ function civicrm_api3_zoomevent_synczoomdata($params) {
 			$attendees = selectZoomParticipants($emails, $eventId);
 		}
 		foreach ($attendees as $attendee) {
-			$updatedParticpants[$attendee['participant_id']] = CRM_NcnCiviZoom_Utils::updateZoomParticipantData($attendee['participant_id'], $list[$attendee['email']]);
+			$updatedParticpants[$attendee['participant_id']] = CRM_NcnCiviZoom_Utils::updateZoomParticipantData($attendee['participant_id'], $consolidatedList[$attendee['email']]);
 		}
 		$allUpdatedParticpants[$eventId] = $updatedParticpants;
 	}

@@ -275,7 +275,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 				'Authorization' => "Bearer $token"
 			])->get($fetchUrl);
 			$result = $response->json();
-			CRM_Core_Error::debug_var('zoom result', $result);
+			CRM_Core_Error::debug_var('getZoomRegistrants result', $result);
 			if(!empty($result['registrants'])){
 				$zoomRegistrantsList = array_merge($zoomRegistrantsList, $result['registrants']);
 			}
@@ -378,7 +378,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 			if(!empty($result[$array_name])){
 				$list = $result[$array_name];
 				foreach ($list as $item) {
-					$returnZoomList[$item[$key_name]] = $item;
+					$returnZoomList[$item[$key_name]][] = $item;
 				}
 			}
 			$next_page_token = 'next_page_token='.$result['next_page_token'];
@@ -405,7 +405,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 				if(!empty($result[$array_name])){
 					$list = $result[$array_name];
 					foreach ($list as $item) {
-						$returnZoomList[$item[$key_name]] = $item;
+						$returnZoomList[$item[$key_name]][] = $item;
 					}
 				}
 				$next_page_token = 'next_page_token='.$result['next_page_token'];

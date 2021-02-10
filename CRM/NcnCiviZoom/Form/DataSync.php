@@ -121,7 +121,7 @@ class CRM_NcnCiviZoom_Form_DataSync extends CRM_Core_Form {
         if(empty($cFDetails['values'])){
             $cfLabel = ucwords(str_replace( '_', ' ', $key));
             if($key == 'duration'){
-                $cfLabel .= ' (in mins)';
+                $cfLabel = 'Total '.$cfLabel.' (in mins)';
             }
             $params = array(
                 'custom_group_id' => $cGId,
@@ -132,12 +132,55 @@ class CRM_NcnCiviZoom_Form_DataSync extends CRM_Core_Form {
                 'column_name' => $key,
                 'is_searchable' => 1,
             );
+            if($key == 'join_time' || $key == 'leave_time'){
+                $params['data_type'] = 'Date';
+                $params['html_type'] = 'Select Date';
+                $params['is_search_range'] = 1;
+                $params['time_format'] = 1;
+            }
             try {
                 $cFDetails= civicrm_api3('CustomField', 'create', $params);
             } catch (Exception $e) {
                 CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomGroup Action:create error details', $e);
                 CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomGroup Action:create params', $params);
 
+            }
+        }
+
+        if($key == 'duration'){
+            // Creating 20 custom fields to record maximum of 20 durations
+            for ($index=1; $index <=20 ; $index++) {
+                // Checking the existence of durations custom fields
+                $CFName = 'duration_'.$index;
+                $params = array(
+                    'sequential' => 1,
+                    'custom_group_id' => $cGId,
+                );
+                $params['name'] = $CFName;
+                try {
+                    $cFDetails = civicrm_api3('CustomField', 'get', $params);
+                } catch (Exception $e) {
+                    CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomGroup Action:get error details', $e);
+                    CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomGroup Action:get params', $params);
+
+                }
+                // If doesn't exist then create the custom field
+                if(empty($cFDetails['values'])){
+                    $cfLabel = ucwords(str_replace( '_', ' ', $CFName));
+                    $cfLabel .= " (in mins)";
+                    $params['label'] = $cfLabel;
+                    $params['data_type'] = "String";
+                    $params['html_type'] = "Text";
+                    $params['column_name'] = $CFName;
+                    $params['is_searchable'] = 1;
+                    try {
+                        $cFDetails= civicrm_api3('CustomField', 'create', $params);
+                    } catch (Exception $e) {
+                        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomGroup Action:create error details', $e);
+                        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Form_DataSync::postProcess Api:CustomGroup Action:create params', $params);
+
+                    }
+                }
             }
         }
     }
