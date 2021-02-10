@@ -543,6 +543,14 @@ class CRM_NcnCiviZoom_Utils {
     // Get the selected custom fields names
     $syncFields = self::getSyncZoomDataFields();
     $updateParams = [];
+    // If duration has been selected, then add the multiple entries data also
+    if(array_key_exists('duration', $syncFields)){
+      for ($count = 1; $count <= 20 ; $count++) {
+        if(!empty($zoomData['duration_'.$count])){
+          $syncFields['duration_'.$count] = 1;
+        }
+      }
+    }
     foreach ($syncFields as $syncField => $bool) {
       try {
         $cFDetails = civicrm_api3('CustomField', 'get', [
@@ -557,11 +565,14 @@ class CRM_NcnCiviZoom_Utils {
         continue;
       }
 
-      if(!empty($zoomData[$syncField])){
+      if(!empty($cFDetails['id']) && !empty($zoomData[$syncField])){
         // Creating update params for each custom field
         $updateParams['custom_'.$cFDetails['id']] = $zoomData[$syncField];
         if($syncField == 'join_time' || $syncField == 'leave_time') {
           $updateParams['custom_'.$cFDetails['id']] = date('YmdHis', strtotime($zoomData[$syncField]));
+        }
+        if('duration_' == substr($syncField, 0, 9)) {
+          $updateParams['custom_'.$cFDetails['id']] = intdiv($zoomData[$syncField], 60);
         }
       }
     }

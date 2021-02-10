@@ -417,11 +417,12 @@ function civicrm_api3_zoomevent_synczoomdata($params) {
 			$lastEntry = key(array_slice($participant, -1, 1, true));
 			$participantDetails['join_time'] = $participant[$firstEntry]['join_time'];
 			$participantDetails['leave_time'] = $participant[$lastEntry]['leave_time'];
-			$joinTime = $leaveTime = [];
+			$totalDuration = 0;
 			foreach ($participant as $key => $eachJoin) {
-				$participantDetails['join_time_'.($key+1)] = $eachJoin['join_time'];
-				$participantDetails['join_time_'.($key+1)] = $eachJoin['leave_time'];
+				$totalDuration += $eachJoin['duration'];
+				$participantDetails['duration_'.($key+1)] = $eachJoin['duration'];
 			}
+			$participantDetails['duration'] = $totalDuration;
 			$consolidatedList[$email] = $participantDetails;
 		}
 
