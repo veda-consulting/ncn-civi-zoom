@@ -136,7 +136,6 @@ class CRM_NcnCiviZoom_Form_DataSync extends CRM_Core_Form {
                 $params['data_type'] = 'Date';
                 $params['html_type'] = 'Select Date';
                 $params['is_search_range'] = 1;
-                $params['date_format'] = "yy-mm-dd";
                 $params['time_format'] = 1;
             }
             try {
