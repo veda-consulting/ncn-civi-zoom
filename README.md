@@ -1,6 +1,3 @@
-
-
-
 # ncn-civi-zoom
 Civirules Conditions/Actions that talk with Zoom developed for NCN.
 
@@ -12,6 +9,10 @@ This extension will connect CiviEvents with Zoom, allowing registrations for zoo
 * PHP v7.0+
 * CiviCRM 5.0+
 * CiviRules extension
+
+## Conflict with Drupal Devel Module 7.x-1.5
+
+There is a known conflict with Drupal Devel Module 7.x-1.5, if you using the extension in Drupal 7 + CiviCRM setup, which will affect civicrm cron job. Please update Devel Module to 7.x-1.6 to avoid the conflict.
 
 ## Installation
 
