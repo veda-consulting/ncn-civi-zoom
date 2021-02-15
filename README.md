@@ -12,7 +12,7 @@ This extension will connect CiviEvents with Zoom, allowing registrations for zoo
 
 ## Conflict with Drupal Devel Module 7.x-1.5
 
-There is a known conflict with Drupal Devel Module 7.x-1.5, if you using the extension in Drupal 7 + CiviCRM setup, which will affect civicrm cron job. Please update Devel Module to 7.x-1.6 to avoid the conflict.
+There is a known conflict with Drupal Devel Module 7.x-1.5 ([2559061](https://www.drupal.org/project/devel/issues/2559061)), if you using the extension in Drupal 7 + CiviCRM setup, which will affect civicrm cron job. Please update Devel Module to 7.x-1.6 to avoid the conflict.
 
 ## Installation
 
