@@ -130,6 +130,9 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 			'Content-Type' => 'application/json;charset=UTF-8',
 			'Authorization' => "Bearer $token"
 		])->post($url, $participant);
+		CRM_Core_Error::debug_var('Zoom addParticipant event Id', $event['id']);
+		CRM_Core_Error::debug_var('Zoom addParticipant participant', $participant);
+		CRM_Core_Error::debug_var('Zoom addParticipant result', $result);
 
 		// Alert to user on success.
 		if ($response->isOk()) {
@@ -144,7 +147,6 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 				'success'
 			);
 		} else {
-			$result = $response->json();
 			$msg = $result['message'].' $entity ID: '.$entityID;
 			$this->logAction($msg, $triggerData, \PSR\Log\LogLevel::ALERT);
 		}
