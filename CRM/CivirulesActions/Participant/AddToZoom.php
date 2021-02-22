@@ -131,8 +131,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 			'Authorization' => "Bearer $token"
 		])->post($url, $participant);
 		$result = $response->json();
-		CRM_Core_Error::debug_var('Zoom addParticipant event Id', $event['id']);
-		CRM_Core_Error::debug_var('Zoom addParticipant participant', $participant);
+
 		CRM_Core_Error::debug_var('Zoom addParticipant result', $result);
 
 		// Added the registrant_id and event_id to the log
