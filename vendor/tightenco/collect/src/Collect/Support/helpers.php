@@ -100,13 +100,22 @@ if (! class_exists(Illuminate\Support\Collection::class)) {
         }
     }
 
-    // Veda DM:- Ticket No:17661 - Added the check to avoid the known conflict with devel module
-    // Link for the issue is: https://www.drupal.org/project/devel/issues/2559061
-    $config = CRM_Core_Config::singleton();
-    if ($config->userFramework=="Drupal") {
-      $info = system_get_info('module', 'devel');
-      if(!empty($info)){
-        if (! function_exists('dd')) {
+    if (! function_exists('dd')) {
+        // Veda DM:- Ticket No:17661 - Added the check to avoid the known conflict with devel module
+        // Link for the issue is: https://www.drupal.org/project/devel/issues/2559061
+        $isDevelVersionOk = TRUE;
+        $config = CRM_Core_Config::singleton();
+        if ($config->userFramework=="Drupal") {
+          $develInfo = system_get_info('module', 'devel');
+          if(empty($develInfo)){
+            if(version_compare($develInfo['version'], '7.x-1.5') < 1){
+                $isDevelVersionOk = FALSE;
+            }
+          }
+        }
+
+        // Donot declare if the CMS is Drupal 7 and devel module is enabled
+        if($isDevelVersionOk){
             /**
              * Dump the passed variables and end the script.
              *
@@ -121,6 +130,5 @@ if (! class_exists(Illuminate\Support\Collection::class)) {
                 die(1);
             }
         }
-      }
     }
 }
