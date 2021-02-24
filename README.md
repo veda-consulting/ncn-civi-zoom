@@ -12,7 +12,7 @@ This extension will connect CiviEvents with Zoom, allowing registrations for zoo
 
 ## Conflict with Drupal Devel Module 7.x-1.5
 
-We have fixed a known conflict with Drupal Devel Module 7.x-1.5 ([2559061](https://www.drupal.org/project/devel/issues/2559061))
+Fixed a known conflict with Drupal Devel Module 7.x-1.5 ([2559061](https://www.drupal.org/project/devel/issues/2559061))
 
 ## Installation
 
