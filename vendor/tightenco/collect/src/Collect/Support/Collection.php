@@ -307,17 +307,28 @@ class Collection implements ArrayAccess, Arrayable, Countable, IteratorAggregate
         ));
     }
 
-    /**
-     * Dump the collection and end the script.
-     *
-     * @param  mixed  ...$args
-     * @return void
-     */
-    public function dd(...$args)
-    {
-        call_user_func_array([$this, 'dump'], $args);
 
-        die(1);
+    // Veda DM:- Ticket No:17661 - Added the check to avoid the known conflict with devel module
+    // Link for the issue is: https://www.drupal.org/project/devel/issues/2559061
+    $config = CRM_Core_Config::singleton();
+    if ($config->userFramework=="Drupal") {
+      $info = system_get_info('module', 'devel');
+      if(!empty($info)){
+        if (! function_exists('dd')) {
+            /**
+             * Dump the collection and end the script.
+             *
+             * @param  mixed  ...$args
+             * @return void
+             */
+            public function dd(...$args)
+            {
+                call_user_func_array([$this, 'dump'], $args);
+
+                die(1);
+            }
+        }
+      }
     }
 
     /**

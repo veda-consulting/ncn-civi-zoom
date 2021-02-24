@@ -100,19 +100,27 @@ if (! class_exists(Illuminate\Support\Collection::class)) {
         }
     }
 
-    if (! function_exists('dd')) {
-        /**
-         * Dump the passed variables and end the script.
-         *
-         * @param  mixed
-         * @return void
-         */
-        function dd(...$args)
-        {
-            foreach ($args as $x) {
-               VarDumper::dump($x);
+    // Veda DM:- Ticket No:17661 - Added the check to avoid the known conflict with devel module
+    // Link for the issue is: https://www.drupal.org/project/devel/issues/2559061
+    $config = CRM_Core_Config::singleton();
+    if ($config->userFramework=="Drupal") {
+      $info = system_get_info('module', 'devel');
+      if(!empty($info)){
+        if (! function_exists('dd')) {
+            /**
+             * Dump the passed variables and end the script.
+             *
+             * @param  mixed
+             * @return void
+             */
+            function dd(...$args)
+            {
+                foreach ($args as $x) {
+                   VarDumper::dump($x);
+                }
+                die(1);
             }
-            die(1);
         }
+      }
     }
 }
