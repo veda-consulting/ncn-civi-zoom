@@ -178,8 +178,20 @@ function civicrm_api3_zoomevent_generatezoomattendance($params) {
  * @return array participants (email, participant_id, contact_id) who weren't absent
  */
 function selectAttendees($emails, $event, $entity = "Webinar") {
+	$selectEmailString = '';
+	$selectEmails = [];
+	$qParams= [];
+	$i=1;
+	foreach ($emails as $email) {
+		if(!empty($email)){
+			$qParams[$i] = array($email, 'String');
+		  $selectEmails[] = '%'.$i;
+			$i++;
+		}
+	}
+	$selectEmailString = join(', ', $selectEmails);
 	if($entity == "Webinar"){
-		$absenteesEmails = join("','",$emails);
+		// $absenteesEmails = join("','",$emails);
 
 		$selectAttendees = "
 			SELECT
@@ -189,10 +201,10 @@ function selectAttendees($emails, $event, $entity = "Webinar") {
 			FROM civicrm_participant p
 			LEFT JOIN civicrm_email e ON p.contact_id = e.contact_id
 			WHERE
-				e.email NOT IN ('$absenteesEmails') AND
+				e.email NOT IN ($selectEmailString) AND
 		    	p.event_id = {$event}";
 	}elseif($entity == "Meeting"){
-		$attendeesEmails = join("','",$emails);
+		// $attendeesEmails = join("','",$emails);
 
 		$selectAttendees = "
 			SELECT
@@ -202,11 +214,11 @@ function selectAttendees($emails, $event, $entity = "Webinar") {
 			FROM civicrm_participant p
 			LEFT JOIN civicrm_email e ON p.contact_id = e.contact_id
 			WHERE
-				e.email IN ('$attendeesEmails') AND
+				e.email IN ($selectEmailString) AND
 		    	p.event_id = {$event}";
 	}
 	// Run query
-	$query = CRM_Core_DAO::executeQuery($selectAttendees);
+	$query = CRM_Core_DAO::executeQuery($selectAttendees, $qParams);
 
 	$attendees = [];
 
@@ -458,7 +470,19 @@ function civicrm_api3_zoomevent_synczoomdata($params) {
  */
 function selectZoomParticipants($emails, $event) {
 
-	$participantsEmails = join("','",$emails);
+	// $participantsEmails = join("','",$emails);
+	$selectEmailString = '';
+	$selectEmails = [];
+	$qParams= [];
+	$i=1;
+	foreach ($emails as $email) {
+		if(!empty($email)){
+			$qParams[$i] = array($email, 'String');
+		  $selectEmails[] = '%'.$i;
+			$i++;
+		}
+	}
+	$selectEmailString = join(', ', $selectEmails);
 
 	$selectAttendees = "
 		SELECT
@@ -468,11 +492,11 @@ function selectZoomParticipants($emails, $event) {
 		FROM civicrm_participant p
 		LEFT JOIN civicrm_email e ON p.contact_id = e.contact_id
 		WHERE
-			e.email IN ('$participantsEmails') AND
+			e.email IN ($selectEmailString) AND
 	    	p.event_id = {$event}";
 
 	// Run query
-	$query = CRM_Core_DAO::executeQuery($selectAttendees);
+	$query = CRM_Core_DAO::executeQuery($selectAttendees, $qParams);
 
 	$attendees = [];
 
