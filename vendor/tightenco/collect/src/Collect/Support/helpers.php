@@ -101,18 +101,34 @@ if (! class_exists(Illuminate\Support\Collection::class)) {
     }
 
     if (! function_exists('dd')) {
-        /**
-         * Dump the passed variables and end the script.
-         *
-         * @param  mixed
-         * @return void
-         */
-        function dd(...$args)
-        {
-            foreach ($args as $x) {
-               VarDumper::dump($x);
+        // Veda DM:- Ticket No:17661 - Added the check to avoid the known conflict with devel module
+        // Link for the issue is: https://www.drupal.org/project/devel/issues/2559061
+        $isDevelVersionOk = TRUE;
+        $config = CRM_Core_Config::singleton();
+        if ($config->userFramework=="Drupal") {
+          $develInfo = system_get_info('module', 'devel');
+          if(empty($develInfo)){
+            if(version_compare($develInfo['version'], '7.x-1.5') < 1){
+                $isDevelVersionOk = FALSE;
             }
-            die(1);
+          }
+        }
+
+        // Donot declare if the CMS is Drupal 7 and devel module is enabled
+        if($isDevelVersionOk){
+            /**
+             * Dump the passed variables and end the script.
+             *
+             * @param  mixed
+             * @return void
+             */
+            function dd(...$args)
+            {
+                foreach ($args as $x) {
+                   VarDumper::dump($x);
+                }
+                die(1);
+            }
         }
     }
 }
