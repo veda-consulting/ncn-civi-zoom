@@ -76,94 +76,6 @@ function civicrm_api3_zoomevent_generatezoomattendance($params) {
 		}
 		updateAttendeesStatus($attendees, $eventId);
 		$allAttendees[$eventId] = $attendees;
-		// $zoomAccountId = CRM_NcnCiviZoom_Utils::getZoomAccountIdByEventId($eventId);
-		// if(empty($zoomAccountId)){
-		// 	continue;
-		// }
-		// $settings = CRM_NcnCiviZoom_Utils::getZoomSettings($zoomAccountId);
-		// $key = $settings['secret_key'];
-		// $payload = array(
-		//     "iss" => $settings['api_key'],
-		//     "exp" => strtotime('+1 hour')
-		// );
-		// $jwt = JWT::encode($payload, $key);
-		// $webinarId = getWebinarID($eventId);
-		// $meetingId = getMeetingID($eventId);
-		// $page = 0;
-		// if(!empty($webinarId)){
-		// 	$entityId = $webinarId;
-		// 	$url = $settings['base_url'] . "/past_webinars/$webinar/absentees?page=$page";
-		// 	$entity = "Webinar";
-		// }elseif(!empty($meetingId)){
-		// 	$entityId = $meetingId;
-		// 	$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?page=$page";
-		// 	$entity = "Meeting";
-		// }else{
-		// 	continue;
-		// }
-
-		// $token = $jwt;
-		// // Get absentees from Zoom API
-		// $response = Zttp::withHeaders([
-		// 	'Content-Type' => 'application/json;charset=UTF-8',
-		// 	'Authorization' => "Bearer $token"
-		// ])->get($url);
-
-		// $attendees = [];
-		// if($entity == "Webinar"){
-		// 	$pages = $response->json()['page_count'];
-
-		// 	// Store registrants who did not attend the webinar
-		// 	$absentees = $response->json()['registrants'];
-
-		// 	$absenteesEmails = [];
-
-		// 	while($page < $pages) {
-		// 		foreach($absentees as $absentee) {
-		// 			$email = $absentee['email'];
-
-		// 			array_push($absenteesEmails, "'$email'");
-		// 		}
-
-		// 		$attendees = array_merge($attendees, selectAttendees($absenteesEmails, $eventId));
-
-		// 		$page++;
-
-		// 		// Get and loop through all of webinar registrants
-		// 		$url = $settings['base_url'] . "/past_webinars/$webinar/absentees?page=$page";
-
-		// 		// Get absentees from Zoom API
-		// 		$response = Zttp::withHeaders([
-		// 			'Content-Type' => 'application/json;charset=UTF-8',
-		// 			'Authorization' => "Bearer $token"
-		// 		])->get($url);
-
-		// 		// Store registrants who did not attend the webinar
-		// 		$absentees = $response->json()['registrants'];
-
-		// 		$absenteesEmails = [];
-		// 	}
-		// }elseif ($entity == "Meeting") {
-		// 	$attendeesEmails = [];
-		// 	$page = 1;
-		// 	do {
-		// 		$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?page=$page";
-		// 		// Get absentees from Zoom API
-		// 		$response = Zttp::withHeaders([
-		// 			'Content-Type' => 'application/json;charset=UTF-8',
-		// 			'Authorization' => "Bearer $token"
-		// 		])->get($url);
-		// 		$participants = $response->json()['participants'];
-		// 		foreach ($participants as $key => $value) {
-		// 			$attendeesEmails[] = $value['user_email'];
-		// 		}
-		// 		$page++;
-		// 		$pageCount = $response->json()['page_count'];
-		// 	} while ($page <= $pageCount);
-		// 	$attendees = selectAttendees($attendeesEmails, $eventId, "Meeting");
-		// }
-		// updateAttendeesStatus($attendees, $eventId);
-		// $allAttendees[] = $attendees;
 	}
 	$return['allAttendees'] = $allAttendees;
 
@@ -178,18 +90,19 @@ function civicrm_api3_zoomevent_generatezoomattendance($params) {
  * @return array participants (email, participant_id, contact_id) who weren't absent
  */
 function selectAttendees($emails, $event, $entity = "Webinar") {
+	// Preparing the query params
 	$selectEmailString = '';
-	$selectEmails = [];
-	$qParams= [];
-	$i=1;
+	$qParams = $selectEmails = array();
+	$i = 1;
 	foreach ($emails as $email) {
 		if(!empty($email)){
 			$qParams[$i] = array($email, 'String');
-		  $selectEmails[] = '%'.$i;
+			$selectEmails[] = '%'.$i;
 			$i++;
 		}
 	}
 	$selectEmailString = join(', ', $selectEmails);
+
 	if($entity == "Webinar"){
 		// $absenteesEmails = join("','",$emails);
 
@@ -202,7 +115,7 @@ function selectAttendees($emails, $event, $entity = "Webinar") {
 			LEFT JOIN civicrm_email e ON p.contact_id = e.contact_id
 			WHERE
 				e.email NOT IN ($selectEmailString) AND
-		    	p.event_id = {$event}";
+				p.event_id = {$event}";
 	}elseif($entity == "Meeting"){
 		// $attendeesEmails = join("','",$emails);
 
@@ -215,7 +128,7 @@ function selectAttendees($emails, $event, $entity = "Webinar") {
 			LEFT JOIN civicrm_email e ON p.contact_id = e.contact_id
 			WHERE
 				e.email IN ($selectEmailString) AND
-		    	p.event_id = {$event}";
+				p.event_id = {$event}";
 	}
 	// Run query
 	$query = CRM_Core_DAO::executeQuery($selectAttendees, $qParams);
@@ -469,16 +382,14 @@ function civicrm_api3_zoomevent_synczoomdata($params) {
  * @return array of zoom webinar/meeting registrants in the civi (email, participant_id, contact_id)
  */
 function selectZoomParticipants($emails, $event) {
-
-	// $participantsEmails = join("','",$emails);
+	// Preparing the query params
 	$selectEmailString = '';
-	$selectEmails = [];
-	$qParams= [];
-	$i=1;
+	$qParams = $selectEmails = array();
+	$i = 1;
 	foreach ($emails as $email) {
 		if(!empty($email)){
 			$qParams[$i] = array($email, 'String');
-		  $selectEmails[] = '%'.$i;
+			$selectEmails[] = '%'.$i;
 			$i++;
 		}
 	}
@@ -493,7 +404,7 @@ function selectZoomParticipants($emails, $event) {
 		LEFT JOIN civicrm_email e ON p.contact_id = e.contact_id
 		WHERE
 			e.email IN ($selectEmailString) AND
-	    	p.event_id = {$event}";
+			p.event_id = {$event}";
 
 	// Run query
 	$query = CRM_Core_DAO::executeQuery($selectAttendees, $qParams);
