@@ -661,4 +661,94 @@ class CRM_NcnCiviZoom_Utils {
       }
     }
   }
+
+  /*
+   * Function to add Zoom exception custom field
+   */
+  public static function forUpgrade1006(){
+    $cGName = CRM_NcnCiviZoom_Constants::CG_Event_Zoom_Notes;
+    $cFName = CRM_NcnCiviZoom_Constants::CF_Unmatched_Zoom_Participants;
+
+    $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
+    if(!empty($cGId)){
+      civicrm_api3('CustomField', 'create', [
+        'sequential' => 1,
+        'custom_group_id' => $cGId,
+        'label' => "Unmatched Zoom Participants",
+        'name' => $cFName,
+        'data_type' => "Memo",
+        'html_type' => "TextArea",
+        'column_name' => 'unmatched_zoom_participants',
+        'is_view' => 1,
+      ]);
+    }
+  }
+
+  /**
+   * String of Participants
+   *
+   * @param participantsList - Array
+   * @param glue - String
+   * @return stringOfParticipants - String
+   */
+  public static function stringOfParticipants($participantsList = [], $glue = ' , '){
+    if(empty($participantsList) || !is_array($participantsList)){
+      return;
+    }
+    $participantsUpdateArray = [];
+    foreach ($participantsList as $participant) {
+      $participantsUpdateArray[] = $participant['name']." - ".$participant['user_email'];
+    }
+    $stringOfParticipants = implode($glue, $participantsUpdateArray);
+    return $stringOfParticipants;
+  }
+
+  /**
+   * Update the update Unmatched Zoom Participants to event's notes
+   * These are the Zoom participants who donot have a matching participant record in the civi
+   *
+   * @param eventId - Integer
+   * @param exceptionList - Array
+   */
+  public static function updateUnmatchedZoomParticipantsToNotes($eventId, $exceptionList = []){
+    $updateResult = '';
+    if(empty($eventId) || empty($exceptionList) || !is_array($exceptionList)){
+      $updateResult = 'Params Missing';
+      return $updateResult;
+    }
+
+    $updateString = self::stringOfParticipants($exceptionList);
+    $cFName = CRM_NcnCiviZoom_Constants::CF_Unmatched_Zoom_Participants;
+
+    try {
+      $cFDetails = civicrm_api3('CustomField', 'get', [
+        'sequential' => 1,
+        'name' => $cFName,
+      ]);
+    } catch (Exception $e) {
+      CRM_Core_Error::debug_var('Error in updateUnmatchedZoomParticipantsToNotes', $e);
+      CRM_Core_Error::debug_var('Error while calling api CustomField get', $cFName);
+      $updateResult = "Couldn't retrieve the Custom Field ".$cFName." data";
+    }
+    if(!empty($cFDetails['id'])){
+      try {
+        $apiResult = civicrm_api3('CustomValue', 'create', [
+          'entity_id' => $eventId,
+          'custom_'.$cFDetails['id'] => $updateString.".",
+        ]);
+      } catch (Exception $e) {
+        CRM_Core_Error::debug_var('Error in updateUnmatchedZoomParticipantsToNotes', $e);
+        CRM_Core_Error::debug_var('Error while calling api CustomField create', [
+          'eventId' => $eventId,
+          'cFDetails' => $cFDetails,
+          'updateString' => $updateString
+        ]);
+      }
+      if($apiResult['values']){
+        $updateResult = 'Exceptions have been updated to the event successfully.';
+      }
+    }
+
+    return $updateResult;
+  }
 }
