@@ -17,6 +17,7 @@ class CRM_NcnCiviZoom_Constants {
   ,CF_Event_Zoom_Notes = 'Event_Zoom_Notes' //Zoom notes Custom field name
   ,SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE = 'send_recent_zoom_registrants'
   ,CG_ZOOM_DATA_SYNC = 'zoom_data_sync'  // Custom Group Name
+  ,CF_Unmatched_Zoom_Participants = 'Unmatched_Zoom_Participants' //Zoom Exception notes Custom field name
   ;
 
   public static $allZoomParticipantDataFields = array('user_id', 'name', 'email', 'join_time', 'leave_time', 'duration', 'registrant_id', 'first_name', 'last_name', 'address', 'city', 'country', 'zip', 'state', 'indusrty', 'job_title');

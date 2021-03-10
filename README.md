@@ -122,3 +122,4 @@ An example of the scheduled job setup has been done below![Screenshot of Schedul
 * For each entry/exit, the duration will also be stored against the participant record. And such that a maximum of 20 durations will be stored against a participant record.
 * Apart from that the total duration will be stored in a separate field.
 * An example of the scheduled job setup has been done below![Screenshot of Scheduled Job](images/sync-zoom-data.PNG)
+* It also updates the unmatched zoom participants details(name and email) to the custom field 'Unmatched Zoom Participants' of the corressponding event.

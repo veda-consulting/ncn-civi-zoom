@@ -180,4 +180,10 @@ class CRM_NcnCiviZoom_Upgrader extends CRM_NcnCiviZoom_Upgrader_Base {
     }
     return TRUE;
   }
+
+  //Upgrade function to add the note type custom field to the events
+  public function upgrade_1006(){
+    CRM_NcnCiviZoom_Utils::forUpgrade1006();
+    return TRUE;
+  }
 }

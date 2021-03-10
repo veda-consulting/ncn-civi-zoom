@@ -349,6 +349,7 @@ function civicrm_api3_zoomevent_synczoomdata($params) {
 			}
 			$participantDetails['duration'] = $totalDuration;
 			$consolidatedList[$email] = $participantDetails;
+			$consolidatedList[$email]['has_civi_record'] = FALSE;
 		}
 
 		$emails = [];
@@ -364,8 +365,19 @@ function civicrm_api3_zoomevent_synczoomdata($params) {
 		}
 		foreach ($attendees as $attendee) {
 			$updatedParticpants[$attendee['participant_id']] = CRM_NcnCiviZoom_Utils::updateZoomParticipantData($attendee['participant_id'], $consolidatedList[$attendee['email']]);
+			$consolidatedList[$attendee['email']]['has_civi_record'] = TRUE;
 		}
 		$allUpdatedParticpants[$eventId] = $updatedParticpants;
+		// Collecting the unmatched participants as exceptions
+		$exceptionsArray = array();
+		foreach ($consolidatedList as $value) {
+			if(!$value['has_civi_record']){
+				$exceptionsArray[] = $value;
+			}
+		}
+		if(!empty($exceptionsArray)){
+			$return['exception_notes'][$eventId] = CRM_NcnCiviZoom_Utils::updateUnmatchedZoomParticipantsToNotes($eventId, $exceptionsArray);
+		}
 	}
 
 	$return['all_updated_participants'] = $allUpdatedParticpants;
