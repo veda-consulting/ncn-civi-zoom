@@ -401,9 +401,25 @@ class CRM_NcnCiviZoom_Utils {
     }
     $return = [];
     // Replacing the tokens
-    $emailContent['subject'] = str_replace('{event_title}' ,$event, $emailContent['msg_subject']);
+    $emailContent['subject'] = str_replace('{event_title}' ,$event['title'], $emailContent['msg_subject']);
     $registrantsString = self::stringOfRegistrants($registrantsList, '<br>');
-    $emailContent['html'] = str_replace(['{registrants}', '{event_title}'], [$registrantsString, $event], $emailContent['msg_html']);
+    $tokens_array = array('{registrants}', '{event_title}' , '{event_start_date}', '{event_id}');
+    $replace_array = array($registrantsString, $event['title'], $event['event_start_date'], $event['id']);
+    // Retrieve the custom fields
+    $eventCFields = CRM_Core_BAO_CustomField::getFields('Event');
+    foreach ($eventCFields as $cField) {
+      $cFName = $cField['name'];
+      // Check if the custom field is included and replace the token
+      if(strpos($emailContent['msg_html'], '{'.$cFName.'}' )){
+        $tokens_array[] = '{'.$cFName.'}';
+        $eventCustValue = civicrm_api3('Event', 'getsingle', [
+          'return' => [$cFName],
+          'id' => $event['id'],
+        ]);
+        $replace_array[] = empty($eventCustValue[$cFName]) ? '' : $eventCustValue[$cFName];
+      }
+    }
+    $emailContent['html'] = str_replace($tokens_array, $replace_array, $emailContent['msg_html']);
     $emailIds = explode(',', $toEmails);
     foreach ($emailIds as $emailId) {
       $emailSent = self::sendEmail($emailId, $emailContent);
@@ -463,7 +479,7 @@ class CRM_NcnCiviZoom_Utils {
     ]);
 
     $sendZoomRegistrantsEmailTemplateTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
-    $msgHtml = "<br> {event_title} <br> {registrants} <br>";
+    $msgHtml = "<br> {event_title} <br> {registrants} <br> {event_start_date} <br> {event_id} <br>";
     $msgSubject = "Recently Joined to the zoom event: {event_title}";
     civicrm_api3('MessageTemplate', 'create', [
       'msg_title' => $sendZoomRegistrantsEmailTemplateTitle,
@@ -750,5 +766,27 @@ class CRM_NcnCiviZoom_Utils {
     }
 
     return $updateResult;
+  }
+
+  /*
+   * Function to add Zoom join link custom field
+   */
+  public static function forUpgrade1007(){
+    $cGName = CRM_NcnCiviZoom_Constants::CG_Event_Zoom_Notes;
+    $cFName = CRM_NcnCiviZoom_Constants::CF_ZOOM_JOIN_LINK;
+
+    $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
+    if(!empty($cGId)){
+      civicrm_api3('CustomField', 'create', [
+        'sequential' => 1,
+        'custom_group_id' => $cGId,
+        'label' => "Zoom Join Link",
+        'name' => $cFName,
+        'data_type' => "String",
+        'html_type' => "Text",
+        'column_name' => 'zoom_join_link',
+        'is_view' => 1,
+      ]);
+    }
   }
 }

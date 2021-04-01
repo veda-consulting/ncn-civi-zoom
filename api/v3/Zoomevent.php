@@ -266,7 +266,7 @@ function civicrm_api3_zoomevent_getrecentzoomregistrants($params) {
 				$notesUpdateMessage = CRM_NcnCiviZoom_Utils::updateZoomRegistrantsToNotes($event['id'], $registrantsList);
 				$result[$event['id']]['Notes Update Message'] = $notesUpdateMessage;
 				if(!empty($params['to_emails'])){
-					$emailSentMessage = CRM_NcnCiviZoom_Utils::sendZoomRegistrantsToEmail($params['to_emails'], $recentRegistrants, $event['title']);
+					$emailSentMessage = CRM_NcnCiviZoom_Utils::sendZoomRegistrantsToEmail($params['to_emails'], $recentRegistrants, $event);
 					$result[$event['id']]['Email Update Message'] = $emailSentMessage;
 				}
 			}else{
