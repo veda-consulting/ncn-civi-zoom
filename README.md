@@ -125,4 +125,4 @@ An example of the scheduled job setup has been done below![Screenshot of Schedul
 * It also updates the unmatched zoom participants details(name and email) to the custom field 'Unmatched Zoom Participants' of the corressponding event.
 
 ### Others
-* Added a new custom field 'Zoom Join Link' to store zoom joining link which will be automatically saved upon saving the event.
+* Added a new custom field 'Zoom Join Link' to store zoom joining link which will be automatically updated upon saving the event.
