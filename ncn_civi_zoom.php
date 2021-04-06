@@ -56,6 +56,8 @@ function ncn_civi_zoom_civicrm_postInstall() {
   CRM_Core_BAO_Setting::setItem($settings, ZOOM_SETTINGS, 'zoom_settings');
   CRM_NcnCiviZoom_Utils::forUpgrade1003();
   CRM_NcnCiviZoom_Utils::forUpgrade1004();
+  CRM_NcnCiviZoom_Utils::forUpgrade1006();
+  CRM_NcnCiviZoom_Utils::forUpgrade1007();
   _ncn_civi_zoom_civix_civicrm_postInstall();
 }
 
@@ -415,13 +417,41 @@ function ncn_civi_zoom_civicrm_postProcess($formName, $form) {
     $values = $form->exportValues();
     $customFieldZoomAccount = CRM_NcnCiviZoom_Utils::getAccountIdCustomField();
     if(isset($values['zoom_account_list']) && !empty($form->_id) && !empty($customFieldZoomAccount)){
+      // Preparing the api params to store the zoom account id
+      $createApiParams = array(
+        'entity_id' => $form->_id,
+        $customFieldZoomAccount => $values['zoom_account_list'],
+      );
+      // Trying to store the zoom joining link also
+      $cGName = CRM_NcnCiviZoom_Constants::CG_Event_Zoom_Notes;
+      $cFName = CRM_NcnCiviZoom_Constants::CF_ZOOM_JOIN_LINK;
+      $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
       try {
-        civicrm_api3('CustomValue', 'create', [
-          'entity_id' => $form->_id,
-          $customFieldZoomAccount => $values['zoom_account_list'],
+        $cFDetails = civicrm_api3('CustomField', 'get', [
+          'name' => $cFName,
+          'custom_group_id' => $cGId,
         ]);
       } catch (Exception $e) {
         CRM_Core_Error::debug_var('ncn_civi_zoom_civicrm_postProcess error', $e);
+        CRM_Core_Error::debug_var('ncn_civi_zoom_civicrm_postProcess api calling error, entity', 'CustomField');
+        CRM_Core_Error::debug_var('ncn_civi_zoom_civicrm_postProcess api calling error, action', 'get');
+      }
+      if(!empty($cFDetails['id'])){
+        $object = new CRM_CivirulesActions_Participant_AddToZoom;
+        $object->event_id = $form->_id;
+        $joinUrl = CRM_CivirulesActions_Participant_AddToZoom::getJoinUrl($object);
+        if(!empty($joinUrl[0])){
+          $createApiParams['custom_'.$cFDetails['id']] = $joinUrl[0];
+        }
+      }
+
+      try {
+        civicrm_api3('CustomValue', 'create', $createApiParams);
+      } catch (Exception $e) {
+        CRM_Core_Error::debug_var('ncn_civi_zoom_civicrm_postProcess error', $e);
+        CRM_Core_Error::debug_var('ncn_civi_zoom_civicrm_postProcess api calling error, entity', 'CustomValue');
+        CRM_Core_Error::debug_var('ncn_civi_zoom_civicrm_postProcess api calling error, action', 'create');
+        CRM_Core_Error::debug_var('ncn_civi_zoom_civicrm_postProcess api params', $createApiParams);
       }
     }
   }

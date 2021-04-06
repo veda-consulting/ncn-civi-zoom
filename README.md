@@ -123,3 +123,6 @@ An example of the scheduled job setup has been done below![Screenshot of Schedul
 * Apart from that the total duration will be stored in a separate field.
 * An example of the scheduled job setup has been done below![Screenshot of Scheduled Job](images/sync-zoom-data.PNG)
 * It also updates the unmatched zoom participants details(name and email) to the custom field 'Unmatched Zoom Participants' of the corressponding event.
+
+### Others
+* Added a new custom field 'Zoom Join Link' to store zoom joining link which will be automatically updated upon saving the event.
