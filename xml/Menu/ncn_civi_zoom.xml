@@ -17,4 +17,16 @@
      <page_callback>CRM_NcnCiviZoom_Page_AJAX::checkEventWithZoom</page_callback>
      <access_arguments>access CiviCRM</access_arguments>
   </item>
+  <item>
+    <path>civicrm/zoom/zoomregistrants</path>
+    <page_callback>CRM_NcnCiviZoom_Form_ZoomRegistrants</page_callback>
+    <title>Zoom Registrants</title>
+    <access_arguments>administer Zoom</access_arguments>
+  </item>
+  <item>
+    <path>civicrm/zoom/importparticipant</path>
+    <page_callback>CRM_NcnCiviZoom_Form_ImportParticipant</page_callback>
+    <title>Import Participant</title>
+    <access_arguments>administer Zoom</access_arguments>
+  </item>
 </menu>
