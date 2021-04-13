@@ -90,7 +90,7 @@ Once you've decided this you can create a new CiviRule as per the below.
 ## Enabling the integration for a CiviEvent
 ### Configuring the Zoom Event
 * Once the meeting/webinar has been created in the zoom, need to ensure whether the 'Required' check box has been marked against 'Registration' field as below.![Screenshot of registration required](images/registration-required.png)
-* Also need to ensure that the additional fields(other than Last Name) are not enabled as required fields under the registration options.![Screenshot of registration options](images/registration-options-1.png)
+* Also need to ensure that the additional fields(other than Last Name) are not enabled as required fields under the registration options.![Screenshot of registration options](images/zoom-registration-options.png)
 
 ### Configure the CiviEvent
 * Once the settings page has been created then you can see the configured zoom account ids list as drop down box just above the Webinar Id field , whenever you Add/Edit an event as below.
