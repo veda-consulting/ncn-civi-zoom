@@ -192,4 +192,16 @@ class CRM_NcnCiviZoom_Upgrader extends CRM_NcnCiviZoom_Upgrader_Base {
     CRM_NcnCiviZoom_Utils::forUpgrade1007();
     return TRUE;
   }
+
+  //Upgrade function to add the custom field to store zoom_participant_join_url
+  public function upgrade_1008(){
+    CRM_NcnCiviZoom_Utils::forUpgrade1008();
+    return TRUE;
+  }
+
+  //Upgrade function to add create the zoom registrants table
+  public function upgrade_1009(){
+    CRM_NcnCiviZoom_Utils::forUpgrade1009();
+    return TRUE;
+  }
 }

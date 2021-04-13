@@ -9,6 +9,7 @@ This extension will connect CiviEvents with Zoom, allowing registrations for zoo
 * PHP v7.0+
 * CiviCRM 5.0+
 * CiviRules extension
+* A Paid Zoom Account
 
 ## Conflict with Drupal Devel Module 7.x-1.5
 
@@ -87,6 +88,9 @@ Once you've decided this you can create a new CiviRule as per the below.
 
 
 ## Enabling the integration for a CiviEvent
+### Configuring the Zoom Event
+* Once the meeting/webinar has been created in the zoom, we need to ensure whether the 'Required' check box has been marked against 'Registration' field as below.![Screenshot of event configuration](images/registration-required.png)
+
 ### Configure the CiviEvent
 * Once the settings page has been created then you can see the configured zoom account ids list as drop down box just above the Webinar Id field , whenever you Add/Edit an event as below.
 * Once you've selected a zoom account and entered a Webinar Id / Meeting Id your webinar/meeting id will be verified with the selected zoom account along with a message next to the text box as below.
@@ -125,4 +129,7 @@ An example of the scheduled job setup has been done below![Screenshot of Schedul
 * It also updates the unmatched zoom participants details(name and email) to the custom field 'Unmatched Zoom Participants' of the corressponding event.
 
 ### Others
-* Added a new custom field 'Zoom Join Link' to store zoom joining link which will be automatically updated upon saving the event.
+* Added a new custom field 'Zoom Join Link' to store zoom joining link which will be automatically updated upon saving the event. This will be common link for the meeting/webinar.
+* Added a new custom field 'Zoom Participant Join Link' which is unique for each registrant in zoom to join the meeting/webinar. This will be automatically updated when the zoom participant is being pushed from civi to zoom.
+* Added a link to the manage events page against every event to view the zoom registrants for that particular event.![Screenshot of event configuration](images/view-zoom-registrants.png)
+* Added a new page to view the zoom registrants and also added an option to import the contacts/participants missing in civi.![Screenshot of event configuration](images/import-contacts.png)

@@ -468,3 +468,16 @@ function ncn_civi_zoom_civicrm_pageRun(&$page) {
     ));
   }
 }
+
+
+function ncn_civi_zoom_civicrm_links($op, $objectName, $objectId, &$links, &$mask, &$values){
+  CRM_Core_Error::debug_var('op', $op);
+  if($op == 'event.manage.list' && $objectName == 'Event'){
+    // Add a link to view the zoom registrants
+    $links[] = array(
+      'name' => ts('View Zoom Registrants'),
+      'title' => ts('View Zoom Registrants'),
+      'url' => CRM_Utils_System::url('civicrm/zoom/zoomregistrants', "reset=1&event_id=".$objectId),
+    );
+  }
+}

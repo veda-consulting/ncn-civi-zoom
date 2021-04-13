@@ -260,6 +260,7 @@ function civicrm_api3_zoomevent_getrecentzoomregistrants($params) {
 	$events = CRM_NcnCiviZoom_Utils::getUpcomingEventsList();
 	foreach ($events as $key => $event) {
 		$registrantsList = CRM_CivirulesActions_Participant_AddToZoom::getZoomRegistrants($event['id']);
+		CRM_NcnCiviZoom_Utils::insertZoomRegistrantsInToCivi($event['id'], $registrantsList);
 		if(!empty($registrantsList)){
 			$recentRegistrants = CRM_NcnCiviZoom_Utils::filterZoomRegistrantsByTime($registrantsList, $params['mins']);
 			if(!empty($recentRegistrants)){

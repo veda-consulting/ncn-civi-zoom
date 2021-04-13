@@ -789,4 +789,198 @@ class CRM_NcnCiviZoom_Utils {
       ]);
     }
   }
+
+  /*
+   * Function to add Zoom participant join link custom field
+   */
+  public static function forUpgrade1008(){
+    $cGName = CRM_NcnCiviZoom_Constants::CG_ZOOM_DATA_SYNC;
+    $cFName = CRM_NcnCiviZoom_Constants::CF_ZOOM_PARTICIPANT_JOIN_LINK;
+
+    $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
+    if(!empty($cGId)){
+      civicrm_api3('CustomField', 'create', [
+        'sequential' => 1,
+        'custom_group_id' => $cGId,
+        'label' => "Zoom Participant Join Link",
+        'name' => $cFName,
+        'data_type' => "String",
+        'html_type' => "Text",
+        'column_name' => 'zoom_participant_join_link',
+        'is_view' => 1,
+      ]);
+    }
+  }
+
+  /*
+   * Function to get participant Id
+   */
+  public static function getParticipantId($contactId, $eventId){
+    if(empty($contactId) || empty($eventId)){
+      CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('contactId', $contactId);
+      CRM_Core_Error::debug_var('eventId', $eventId);
+      return;
+    }
+
+    try {
+      $participantDetals = civicrm_api3('Participant', 'get', [
+        'sequential' => 1,
+        'contact_id' => $contactId,
+        'event_id' => $eventId,
+      ]);
+    } catch (Exception $e) {
+      CRM_Core_Error::debug_log_message('Error while calling Participant get api in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('contactId', $contactId);
+      CRM_Core_Error::debug_var('eventId', $eventId);
+    }
+    if(!empty($participantDetals['id'])){
+      return $participantDetals['id'];
+    }
+    return;
+  }
+
+  /*
+   * Function to update Zoom participant join link custom field
+   */
+  public static function updateZoomParticipantJoinLink($pId, $zoom_join_link){
+    if(empty($pId) || empty($zoom_join_link)){
+      CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('pId', $pId);
+      CRM_Core_Error::debug_var('zoom_join_link', $zoom_join_link);
+      return FALSE;
+    }
+    $cGName = CRM_NcnCiviZoom_Constants::CG_ZOOM_DATA_SYNC;
+    $cFName = CRM_NcnCiviZoom_Constants::CF_ZOOM_PARTICIPANT_JOIN_LINK;
+
+    $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
+
+    if(!empty($cGId)){
+      $cFDetails = civicrm_api3('CustomField', 'get', [
+        'sequential' => 1,
+        'custom_group_id' => $cGId,
+        'name' => $cFName,
+      ]);
+      if(!empty($cFDetails['id'])){
+        $customValueWritten = civicrm_api3('CustomValue', 'create', [
+          'sequential' => 1,
+          'entity_id' => $pId,
+          'custom_'.$cFDetails['id'] => $zoom_join_link,
+        ]);
+        return !$customValueWritten['is_error'];
+      }
+    }
+    return FALSE;
+  }
+
+  /*
+   * Function to create zoom registrants table
+   */
+  public static function forUpgrade1009(){
+    $tableName = CRM_NcnCiviZoom_Constants::ZOOM_REGISTRANTS_TABLE_NAME;
+    $createTableQuery = "
+      CREATE TABLE IF NOT EXISTS civicrm_zoom_registrants (
+      `id` int unsigned NOT NULL PRIMARY KEY UNIQUE AUTO_INCREMENT  COMMENT 'Id',
+      `event_id` int unsigned NOT NULL COMMENT 'FK to Event ID',
+      `first_name` varchar(255),
+      `last_name` varchar(255),
+      `email` varchar(255),
+      CONSTRAINT FK_civicrm_zoom_registrants_event_id FOREIGN KEY (event_id) REFERENCES civicrm_event(id) ON DELETE CASCADE)
+      ENGINE=InnoDB"
+    ;
+    CRM_Core_DAO::executeQuery($createTableQuery);
+    $uniqueIndexQuery = "CREATE UNIQUE INDEX Idx_event_id_email ON civicrm_zoom_registrants (event_id, email)";
+    CRM_Core_DAO::executeQuery($uniqueIndexQuery);
+  }
+
+  /*
+   * Function to get zoom registrants for an event
+   */
+  public static function getZoomRegistrantsFromCivi($eventId = NULL){
+    $zoomRegistrants = array();
+    if(!empty($eventId)){
+      $tableName = CRM_NcnCiviZoom_Constants::ZOOM_REGISTRANTS_TABLE_NAME;
+      $getZoomRegistrantsQuery = "SELECT * FROM ".$tableName." WHERE event_id = %1";
+      $qParams = array(
+        1 => array($eventId, 'Integer')
+      );
+      $dao = CRM_Core_DAO::executeQuery($getZoomRegistrantsQuery, $qParams);
+      while ($dao->fetch()) {
+        $zoomRegistrants[] = $dao->toArray();
+      }
+    }
+
+    return $zoomRegistrants;
+  }
+
+  /*
+   * Function to insert zoom registrants for an event
+   */
+  public static function insertZoomRegistrantsInToCivi($eventId = NULL, $registrantsList = array()){
+    if(empty($eventId) || empty($registrantsList) || !is_array($registrantsList)){
+      CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
+      return FALSE;
+    }
+
+    $tableName = CRM_NcnCiviZoom_Constants::ZOOM_REGISTRANTS_TABLE_NAME;
+    $insertQuery = 'INSERT INTO '.$tableName.' (event_id, first_name, last_name, email) VALUES ';
+    $qParamsString = '';
+    $qParamsArray = array();
+    $qParams = array();
+    $i = 2;
+    $qParams[1] = array($eventId, 'Integer');
+    foreach ($registrantsList as $key => $registrant) {
+      $qParamsArray[$key][] = '%1';
+      if(!empty($registrant['first_name'])){
+        $qParams[$i] = array($registrant['first_name'], 'String');
+      }else{
+        $qParams[$i] = array('', 'String');
+      }
+      $qParamsArray[$key][] = '%'.$i;
+      $i++;
+      if(!empty($registrant['last_name'])){
+        $qParams[$i] = array($registrant['last_name'], 'String');
+      }else{
+        $qParams[$i] = array('', 'String');
+      }
+      $qParamsArray[$key][] = '%'.$i;
+      $i++;
+      if(!empty($registrant['email'])){
+        $qParams[$i] = array($registrant['email'], 'String');
+      }else{
+        $qParams[$i] = array('', 'String');
+      }
+      $qParamsArray[$key][] = '%'.$i;
+      $i++;
+    }
+    $rowStrings = array();
+    foreach ($qParamsArray as $eachRow) {
+      $rowStrings[] = ' ('.implode(" , ",$eachRow).')';
+    }
+    $qParamsString = implode(" , ", $rowStrings);
+    $insertQuery .= $qParamsString;
+    $insertQuery .= '
+      ON DUPLICATE KEY UPDATE
+      event_id   = VALUES(event_id),
+      first_name = VALUES(first_name),
+      last_name  = VALUES(last_name),
+      email      = VALUES(email)';
+    CRM_Core_DAO::executeQuery($insertQuery, $qParams);
+  }
+
+  /*
+   * Function to get Zoom Registrant Details By Id
+   */
+  public static function getZoomRegistrantDetailsById($Id){
+    $zoomRegistrant = array();
+    if(empty($Id)){
+      return $zoomRegistrant;
+    }
+    $tableName = CRM_NcnCiviZoom_Constants::ZOOM_REGISTRANTS_TABLE_NAME;
+    $dao = CRM_Core_DAO::executeQuery("SELECT * FROM ".$tableName." WHERE id = ".$Id);
+    while ($dao->fetch()) {
+      $zoomRegistrant = $dao->toArray();
+    }
+    return $zoomRegistrant;
+  }
 }
