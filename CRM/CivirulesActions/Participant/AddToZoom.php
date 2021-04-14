@@ -271,16 +271,18 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 			])->get($url);
 			$result = $response->json();
 			if($response->isOk()){
+				// Checking for fields other than last_name
 				foreach ($result['questions'] as $question) {
 					if($question['field_name'] != 'last_name' && $question['required']){
-						$return['status'] = 0;
-						$return['message'] = "Please donot mark the additional fields as required other than Last Name.";
+						$return['status'] = -1;
+						$return['message'] = $params["entity"]." has been verified. But participants may not be added to zoom as additional fields are marked as required in zoom.";
 					}
 				}
+				// Checking for custom fields
 				foreach ($result['custom_questions'] as $custom_question) {
 					if($custom_question['required']){
-						$return['status'] = 0;
-						$return['message'] = "Please donot mark the custom questions as required.";
+						$return['status'] = -1;
+						$return['message'] = $params["entity"]." has been verified. But participants may not be added to zoom as custom questions are marked as required in zoom.";
 					}
 				}
 			}

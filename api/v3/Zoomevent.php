@@ -260,8 +260,18 @@ function civicrm_api3_zoomevent_getrecentzoomregistrants($params) {
 	$events = CRM_NcnCiviZoom_Utils::getUpcomingEventsList();
 	foreach ($events as $key => $event) {
 		$registrantsList = CRM_CivirulesActions_Participant_AddToZoom::getZoomRegistrants($event['id']);
-		CRM_NcnCiviZoom_Utils::insertZoomRegistrantsInToCivi($event['id'], $registrantsList);
 		if(!empty($registrantsList)){
+			CRM_NcnCiviZoom_Utils::insertZoomRegistrantsInToCivi($event['id'], $registrantsList);
+			$registrantsEmailList = $registrantsListConsolidated = array();
+			foreach ($registrantsList as $registrant) {
+				$registrantsListConsolidated[$registrant['email']] = $registrant;
+				$registrantsEmailList[]	= $registrant['email'];
+			}
+			$participantDetails = selectZoomParticipants($registrantsEmailList, $event['id']);
+			// Updating the zoom participant join link
+			foreach ($participantDetails as $participantDetail) {
+				CRM_NcnCiviZoom_Utils::updateZoomParticipantJoinLink($participantDetail['participant_id'], $registrantsListConsolidated[$participantDetail['email']]['join_url']);
+			}
 			$recentRegistrants = CRM_NcnCiviZoom_Utils::filterZoomRegistrantsByTime($registrantsList, $params['mins']);
 			if(!empty($recentRegistrants)){
 				$notesUpdateMessage = CRM_NcnCiviZoom_Utils::updateZoomRegistrantsToNotes($event['id'], $registrantsList);

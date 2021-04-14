@@ -90,7 +90,7 @@ Once you've decided this you can create a new CiviRule as per the below.
 ## Enabling the integration for a CiviEvent
 ### Configuring the Zoom Event
 * Once the meeting/webinar has been created in the zoom, need to ensure whether the 'Required' check box has been marked against 'Registration' field as below.![Screenshot of registration required](images/registration-required.png)
-* Also need to ensure that the additional fields(other than Last Name) are not enabled as required fields under the registration options.
+* Also please note that if additional fields(other than Last Name) and/or custom questions are enabled as required fields under the registration options, then the participant(s) will not be pushed from civi to zoom upon registration.
 ![Screenshot of registration options](images/zoom-registration-options.png)
 
 ### Configure the CiviEvent
