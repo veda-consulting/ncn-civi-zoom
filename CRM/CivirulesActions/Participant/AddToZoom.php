@@ -242,16 +242,51 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 			'Authorization' => "Bearer $token"
 		])->get($url);
 		$result = $response->json();
-		// CRM_Core_Error::debug_var('response', $result);
+		CRM_Core_Error::debug_var('checkEventWithZoom response', $result);
+		$return = array(
+			'status' => 0,
+			'message' => 'Sorry, unable to verify.',
+		);
+
 		if($response->isOk()){
 			if(!empty($result['registration_url'])){
-				return ["status" => 1, "message" => $params["entity"]." has been verified"];
+				$return = array("status" => 1, "message" => $params["entity"]." has been verified");
 			}else{
-				return ["status" => 0, "message" => "Please enable the Registration as required for the Zoom ".$params["entity"].": ".$params["entityID"]];
+				$return = array("status" => 0, "message" => "Please enable the Registration as required for the Zoom ".$params["entity"].": ".$params["entityID"]);
 			}
 		} else {
-			return ["status" => 0, "message" => $params["entity"]." does not belong to the ".$settings['name']];
+			$return = array("status" => 0, "message" => $params["entity"]." does not belong to the ".$settings['name']);
 		}
+
+		// Check for additional fields enabled
+		if($return['status']){
+			if($params["entity"] == 'Meeting'){
+		  	$url = $settings['base_url'] . "/meetings/".$params["entityID"]."/registrants/questions";
+			} elseif ($params["entity"] == 'Webinar') {
+		  	$url = $settings['base_url'] . "/webinars/".$params["entityID"]."/registrants/questions";
+			}
+			$response = Zttp::withHeaders([
+				'Content-Type' => 'application/json;charset=UTF-8',
+				'Authorization' => "Bearer $token"
+			])->get($url);
+			$result = $response->json();
+			if($response->isOk()){
+				foreach ($result['questions'] as $question) {
+					if($question['field_name'] != 'last_name' && $question['required']){
+						$return['status'] = 0;
+						$return['message'] = "Please donot mark the additional fields as required other than Last Name.";
+					}
+				}
+				foreach ($result['custom_questions'] as $custom_question) {
+					if($custom_question['required']){
+						$return['status'] = 0;
+						$return['message'] = "Please donot mark the custom questions as required.";
+					}
+				}
+			}
+		}
+
+		return $return;
 	}
 
   public static function getZoomRegistrants($eventId){
