@@ -23,5 +23,5 @@ class CRM_NcnCiviZoom_Constants {
   ,ZOOM_REGISTRANTS_TABLE_NAME = 'civicrm_zoom_registrants' //Zoom registrants table name
   ;
 
-  public static $allZoomParticipantDataFields = array('user_id', 'name', 'email', 'join_time', 'leave_time', 'duration', 'registrant_id', 'first_name', 'last_name', 'address', 'city', 'country', 'zip', 'state', 'indusrty', 'job_title');
+  public static $allZoomParticipantDataFields = array('user_id', 'name', 'email', 'join_time', 'leave_time', 'duration', 'registrant_id', 'first_name', 'last_name', 'address', 'city', 'country', 'zip', 'state', 'industry', 'job_title');
 }

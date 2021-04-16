@@ -79,8 +79,8 @@
 					<td class="crm-form-block-from_name">{$form.state.label} &nbsp;</td>
 				</tr>
 				<tr class="crm-event-manage-eventinfo-form-block-is_map">
-					<td class="label">{$form.indusrty.html}</td>
-					<td class="crm-form-block-from_name">{$form.indusrty.label} &nbsp;</td>
+					<td class="label">{$form.industry.html}</td>
+					<td class="crm-form-block-from_name">{$form.industry.label} &nbsp;</td>
 				</tr>
 				<tr class="crm-event-manage-eventinfo-form-block-is_map">
 					<td class="label">{$form.job_title.html}</td>

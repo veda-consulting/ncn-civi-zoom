@@ -40,7 +40,7 @@ class CRM_NcnCiviZoom_Form_DataSync extends CRM_Core_Form {
     $this->addElement('checkbox', 'country', ts('Country'));
     $this->addElement('checkbox', 'zip', ts('Zip'));
     $this->addElement('checkbox', 'state', ts('State'));
-    $this->addElement('checkbox', 'indusrty', ts('Indusrty'));
+    $this->addElement('checkbox', 'industry', ts('Industry'));
     $this->addElement('checkbox', 'job_title', ts('Job title'));
 
     // Assigning the sync fields
