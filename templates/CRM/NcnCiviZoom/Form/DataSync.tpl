@@ -4,7 +4,7 @@
 
 <div class="block block-system">
 	<div class="custom-group crm-accordion-wrapper crm-custom-accordion">
-		<div class="crm-accordion-header">Selet the Zoom Data to be synced with the Participants</div>
+		<div class="crm-accordion-header">Select the Zoom Data to be synced with the Participants</div>
 		<h2>Data available for both webinars and meetings apis</h2>
 		<h4>Webinar api name: Get Webinar Participants Report</h4>
 		<h4>Meeting api name: Get Meeting Participants Report</h4>
