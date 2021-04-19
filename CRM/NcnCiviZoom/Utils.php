@@ -276,12 +276,7 @@ class CRM_NcnCiviZoom_Utils {
     }
     $recentRegistrants = [];
     foreach ($registrantsList as $registrant) {
-      $registrationTime = $registrant['create_time'];
-
-      $registrationTime = str_replace(['T','Z'], [' ',''], $registrationTime);
-      $registrationTime = date($registrationTime);
-      $now = date('Y-m-d h:i:s');
-      $seconds = strtotime($now) - strtotime($registrationTime);
+      $seconds = strtotime("now") - strtotime($registrant['create_time']);
       $mins = ($seconds/60);
       if($mins < $minsBack){
         $recentRegistrants[] = $registrant;
