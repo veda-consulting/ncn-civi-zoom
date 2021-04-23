@@ -95,6 +95,14 @@
       {ts}Select the event custom field which holds the Zoom Account ID{/ts}
       </span>
     </div>
+    </br>
+    <div class="label">{$form.import_email_location_type.label}</div>
+    <div class="content">{$form.import_email_location_type.html}
+      <span class="description">
+      </br>
+      {ts}Email location type to be used while importing the zoom registrant{/ts}
+      </span>
+    </div>
     <div class="clear"></div>
   </div>
 {/if}

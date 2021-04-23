@@ -130,6 +130,13 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
         TRUE,
         array('multiple' => FALSE)
       );
+      // The Email location type for importing contacts
+      $emailTypeProps = array(
+        'entity' => 'Email',
+        'field' => 'location_type_id',
+        'label' => ts('Import Email Type'),
+      );
+      $this->addSelect('import_email_location_type', $emailTypeProps);
 
       $editAction = CRM_Core_Action::UPDATE;
       $delAction = CRM_Core_Action::DELETE;
@@ -326,6 +333,7 @@ class CRM_NcnCiviZoom_Form_Settings extends CRM_Core_Form {
         $zoomSettings['custom_field_id_webinar'] = $values['custom_field_id_webinar'];
         $zoomSettings['custom_field_id_meeting'] = $values['custom_field_id_meeting'];
         $zoomSettings['custom_field_account_id'] = $values['custom_field_account_id'];
+        $zoomSettings['import_email_location_type'] = $values['import_email_location_type'];
         CRM_Core_BAO_Setting::setItem($zoomSettings, ZOOM_SETTINGS, 'zoom_settings');
         $result['message'] = ts('Your Settings have been saved');
         $result['type'] = 'success';

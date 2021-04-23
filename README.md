@@ -134,5 +134,5 @@ An example of the scheduled job setup has been done below![Screenshot of Schedul
 * Added a new custom field 'Zoom Join Link' to store zoom joining link which will be automatically updated upon saving the event. This will be common link for the meeting/webinar.
 * Added a new custom field 'Zoom Participant Join Link' which is unique for each registrant in zoom to join the meeting/webinar. This will be automatically updated when the zoom participant is being pushed from civi to zoom.
 * Added a link to the manage events page against every event to view the zoom registrants for that particular event.![Screenshot of view zoom registrants page](images/view-zoom-registrants.png)
-* Added a new page to view the zoom registrants and also added an option to import the contacts/participants missing in civi.
+* Added a new page to view the zoom registrants and also added an option to import the contacts/participants missing in civi. You can select the email location type to be used while importing the contact in the zoom settings page.
 ![Screenshot of import zoom registrant](images/import-contacts.png)
