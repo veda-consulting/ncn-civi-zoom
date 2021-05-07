@@ -13,6 +13,6 @@ CREATE TABLE IF NOT EXISTS civicrm_zoom_registrants (
   `last_name` varchar(255),
   `email` varchar(255),
   CONSTRAINT FK_civicrm_zoom_registrants_event_id FOREIGN KEY (`event_id`) REFERENCES `civicrm_event`(`id`) ON DELETE CASCADE
-) ENGINE=InnoDB";
+) ENGINE=InnoDB;
 
 CREATE UNIQUE INDEX Idx_event_id_email ON civicrm_zoom_registrants (event_id, email);
