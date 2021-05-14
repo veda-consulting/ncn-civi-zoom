@@ -197,6 +197,7 @@ class CRM_NcnCiviZoom_Utils {
     }elseif (!empty($form->_entityId)) {
       $eventId = $form->_entityId;
     }
+    $no_of_unmatched = 0;
     if(!empty($eventId)){
       if(($form->getAction() == CRM_Core_Action::UPDATE) && !empty($customFieldZoomAccount)){
         try {
@@ -216,21 +217,22 @@ class CRM_NcnCiviZoom_Utils {
       }
 
       // Adding the link to view zoom registrants
-      $no_of_unmatched = 0;
       $no_of_unmatched = CRM_NcnCiviZoom_Utils::getNoOfUnmatchedZoomRegistrants($eventId);
-      CRM_Core_Error::debug_var('no_of_unmatched', $no_of_unmatched);
-      $cGName = CRM_NcnCiviZoom_Constants::CG_Event_Zoom_Notes;
-      $cFName = CRM_NcnCiviZoom_Constants::CF_Unmatched_Zoom_Participants;
-      $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
-      $cFDetails = civicrm_api3('CustomField', 'get', [
-        'sequential' => 1,
-        'custom_group_id' => $cGId,
-        'name' => $cFName,
-      ]);
-      $form->assign('event_id',$eventId);
-      $form->assign('noOfUnmatched',$no_of_unmatched);
-      $form->assign('customIdUnmatched', 'custom_'.$cFDetails['id'].'_');
+    }else{
+      $eventId = 0;
     }
+    $cGName = CRM_NcnCiviZoom_Constants::CG_Event_Zoom_Notes;
+    $cFName = CRM_NcnCiviZoom_Constants::CF_Unmatched_Zoom_Participants;
+    $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
+    $cFDetails = civicrm_api3('CustomField', 'get', [
+      'sequential' => 1,
+      'custom_group_id' => $cGId,
+      'name' => $cFName,
+    ]);
+    $form->assign('event_id',$eventId);
+    $form->assign('customIdUnmatched', 'custom_'.$cFDetails['id'].'_');
+    CRM_Core_Error::debug_var('no_of_unmatched', $no_of_unmatched);
+    $form->assign('noOfUnmatched',$no_of_unmatched);
   }
 
   /**
