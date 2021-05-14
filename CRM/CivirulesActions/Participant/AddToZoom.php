@@ -307,9 +307,9 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 		$settings = CRM_NcnCiviZoom_Utils::getZoomSettings();
 
 		if(!empty($meetingId)){
-	  	$url = $settings['base_url'] . "/meetings/".$meetingId.'/registrants?';
+	  	$url = $settings['base_url'] . "/meetings/".$meetingId.'/registrants?&page_size=150';
 		} elseif (!empty($webinarId)) {
-	  	$url = $settings['base_url'] . "/webinars/".$webinarId.'/registrants?';
+	  	$url = $settings['base_url'] . "/webinars/".$webinarId.'/registrants?&page_size=150';
 		}
 		$page = 1;
 	  $token = $object->createJWTToken($accountId);
@@ -348,11 +348,11 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 		$accountId = CRM_NcnCiviZoom_Utils::getZoomAccountIdByEventId($eventId);
 		$settings = CRM_NcnCiviZoom_Utils::getZoomSettings();
 		if(!empty($meetingId)){
-	  	$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?";
+	  	$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?&page_size=150";
 	  	$array_name = 'participants';
 	  	$key_name = 'user_email';
 		} elseif (!empty($webinarId)) {
-	  	$url = $settings['base_url'] . "/past_webinars/$webinarId/absentees?";
+	  	$url = $settings['base_url'] . "/past_webinars/$webinarId/absentees?&page_size=150";
 	  	$array_name = 'absentees';
 	  	$key_name = 'email';
 		}
@@ -401,12 +401,12 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 		$settings = CRM_NcnCiviZoom_Utils::getZoomSettings();
 		if(!empty($meetingId)){
 			// Calling Meeting participants report api
-	  	$url = $settings['base_url'] . "/report/meetings/$meetingId/participants?";
+	  	$url = $settings['base_url'] . "/report/meetings/$meetingId/participants?&page_size=150";
 	  	$array_name = 'participants';
 	  	$key_name = 'user_email';
 		} elseif (!empty($webinarId)) {
 			// Calling Webinar absentees api
-	  	$url = $settings['base_url'] . "/past_webinars/$webinarId/absentees?";
+	  	$url = $settings['base_url'] . "/past_webinars/$webinarId/absentees?&page_size=150";
 	  	$array_name = 'absentees';
 	  	$key_name = 'email';
 		}
@@ -434,7 +434,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 
 		if (!empty($webinarId)) {
 			// Calling Webinar participants report api also
-	  	$url = $settings['base_url'] . "/report/webinars/$webinarId/participants?";
+	  	$url = $settings['base_url'] . "/report/webinars/$webinarId/participants?&page_size=150";
 	  	$array_name = 'participants';
 	  	$key_name = 'user_email';
 		  $token = $object->createJWTToken($accountId);

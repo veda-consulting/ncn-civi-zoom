@@ -4,7 +4,7 @@
 
 <div class="block block-system">
 	<div class="custom-group crm-accordion-wrapper crm-custom-accordion">
-		<div class="crm-accordion-header">Selet the Zoom Data to be synced with the Participants</div>
+		<div class="crm-accordion-header">Select the Zoom Data to be synced with the Participants</div>
 		<h2>Data available for both webinars and meetings apis</h2>
 		<h4>Webinar api name: Get Webinar Participants Report</h4>
 		<h4>Meeting api name: Get Meeting Participants Report</h4>
@@ -79,8 +79,8 @@
 					<td class="crm-form-block-from_name">{$form.state.label} &nbsp;</td>
 				</tr>
 				<tr class="crm-event-manage-eventinfo-form-block-is_map">
-					<td class="label">{$form.indusrty.html}</td>
-					<td class="crm-form-block-from_name">{$form.indusrty.label} &nbsp;</td>
+					<td class="label">{$form.industry.html}</td>
+					<td class="crm-form-block-from_name">{$form.industry.label} &nbsp;</td>
 				</tr>
 				<tr class="crm-event-manage-eventinfo-form-block-is_map">
 					<td class="label">{$form.job_title.html}</td>

@@ -28,7 +28,7 @@ class CRM_NcnCiviZoom_Page_AJAX {
 	}
 
   /*
-  * function to get Zoom all Registrants for an event id from civi
+  * function to get all Zoom Registrants for an event id from civi
   */
   public static function getZoomRegistrants() {
     $event_id = CRM_Utils_Request::retrieve('event_id', 'Int', CRM_Core_DAO::$_nullObject);
@@ -36,35 +36,10 @@ class CRM_NcnCiviZoom_Page_AJAX {
     $returnData = array();
     foreach ($zoomRegistrants as $zoomRegistrant) {
 	    $actionUrl = '';
-    	$checkForPaticipantQuery = "
-    		SELECT
-					p.id AS participant_id
-				FROM civicrm_participant p
-				LEFT JOIN civicrm_email e ON p.contact_id = e.contact_id
-				WHERE
-					e.email = %1 AND
-					p.event_id = %2";
-			$qParams = array(
-				1 => array($zoomRegistrant['email'], 'String'),
-				2 => array($event_id, 'Integer'),
-			);
-	    $dao = CRM_Core_DAO::executeQuery($checkForPaticipantQuery, $qParams);
 	    $participantRecordPresent = $contactRecordPresent = FALSE;
-	    while ($dao->fetch()) {
-	    	$participantRecordPresent = TRUE;
-	    }
+	   	$participantRecordPresent = CRM_NcnCiviZoom_Utils::checkForParticipantRecordInCivi($zoomRegistrant['email'], $event_id);
 	    if(!$participantRecordPresent){
-      	$checkForContactQuery = "
-      		SELECT
-						c.id
-					FROM civicrm_contact c
-					LEFT JOIN civicrm_email e ON e.contact_id = c.id
-					WHERE
-						e.email = %1";
-				$dao = CRM_Core_DAO::executeQuery($checkForContactQuery, $qParams);
-				while ($dao->fetch()) {
-					$contactRecordPresent = TRUE;
-				}
+	    	$contactRecordPresent = CRM_NcnCiviZoom_Utils::checkForContactRecordInCivi($zoomRegistrant['email']);
 	    	if(!$contactRecordPresent){
 	    		// If no contact record found add import contact action
 	    		$actionUrl = "<button>Import Contact</button>";

@@ -214,6 +214,22 @@ class CRM_NcnCiviZoom_Utils {
           }
         }
       }
+
+      // Adding the link to view zoom registrants
+      $no_of_unmatched = 0;
+      $no_of_unmatched = CRM_NcnCiviZoom_Utils::getNoOfUnmatchedZoomRegistrants($eventId);
+      CRM_Core_Error::debug_var('no_of_unmatched', $no_of_unmatched);
+      $cGName = CRM_NcnCiviZoom_Constants::CG_Event_Zoom_Notes;
+      $cFName = CRM_NcnCiviZoom_Constants::CF_Unmatched_Zoom_Participants;
+      $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
+      $cFDetails = civicrm_api3('CustomField', 'get', [
+        'sequential' => 1,
+        'custom_group_id' => $cGId,
+        'name' => $cFName,
+      ]);
+      $form->assign('event_id',$eventId);
+      $form->assign('noOfUnmatched',$no_of_unmatched);
+      $form->assign('customIdUnmatched', 'custom_'.$cFDetails['id'].'_');
     }
   }
 
@@ -276,13 +292,14 @@ class CRM_NcnCiviZoom_Utils {
     }
     $recentRegistrants = [];
     foreach ($registrantsList as $registrant) {
-      $registrationTime = $registrant['create_time'];
+      // $registrationTime = $registrant['create_time'];
 
-      $registrationTime = str_replace(['T','Z'], [' ',''], $registrationTime);
-      $registrationTime = date($registrationTime);
-      $now = date('Y-m-d h:i:s');
-      $seconds = strtotime($now) - strtotime($registrationTime);
+      // $registrationTime = str_replace(['T','Z'], [' ',''], $registrationTime);
+      // $registrationTime = date($registrationTime);
+      // $now = date('Y-m-d h:i:s');
+      $seconds = strtotime("now") - strtotime($registrant['create_time']);
       $mins = ($seconds/60);
+
       if($mins < $minsBack){
         $recentRegistrants[] = $registrant;
       }
@@ -982,5 +999,77 @@ class CRM_NcnCiviZoom_Utils {
       $zoomRegistrant = $dao->toArray();
     }
     return $zoomRegistrant;
+  }
+
+  /*
+   * Function to check For Participant Record In Civi By Email
+   */
+  public function checkForParticipantRecordInCivi($emailId = '', $event_id = null){
+    if(!empty($emailId) && !empty($event_id)){
+      $checkForPaticipantQuery = "
+        SELECT
+          p.id AS participant_id
+        FROM civicrm_participant p
+        LEFT JOIN civicrm_email e ON p.contact_id = e.contact_id
+        WHERE
+          e.email = %1 AND
+          p.event_id = %2";
+      $qParams = array(
+        1 => array($emailId, 'String'),
+        2 => array($event_id, 'Integer'),
+      );
+      $dao = CRM_Core_DAO::executeQuery($checkForPaticipantQuery, $qParams);
+      while ($dao->fetch()) {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+
+  /*
+   * Function to check For Contact Record In Civi By Email
+   */
+  public function checkForContactRecordInCivi($emailId = ''){
+    if(!empty($emailId)){
+      $checkForContactQuery = "
+        SELECT
+          c.id
+        FROM civicrm_contact c
+        LEFT JOIN civicrm_email e ON e.contact_id = c.id
+        WHERE
+          e.email = %1";
+      $qParams = array(
+        1 => array($emailId, 'String'),
+      );
+      $dao = CRM_Core_DAO::executeQuery($checkForContactQuery, $qParams);
+      while ($dao->fetch()) {
+        return TRUE;
+      }
+    }
+    return FALSE;
+  }
+
+  /*
+   * Function to get No of Unmatched Zoom Registrants for an event
+   */
+  public static function getNoOfUnmatchedZoomRegistrants($eventId){
+    $no_of_unmatched = 0;
+    if(empty($eventId)){
+      return $no_of_unmatched;
+    }
+    $zoomRegistrants = self::getZoomRegistrantsFromCivi($eventId);
+    foreach ($zoomRegistrants as $zoomRegistrant) {
+      $contactRecordPresent = $participantRecordPresent = FALSE;
+      $contactRecordPresent = self::checkForContactRecordInCivi($zoomRegistrant['email']);
+      if(!$contactRecordPresent){
+        $no_of_unmatched++;
+      }else{
+        $participantRecordPresent = self::checkForParticipantRecordInCivi($zoomRegistrant['email'], $eventId);
+        if(!$participantRecordPresent){
+          $no_of_unmatched++;
+        }
+      }
+    }
+    return $no_of_unmatched;
   }
 }

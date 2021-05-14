@@ -273,6 +273,7 @@ function civicrm_api3_zoomevent_getrecentzoomregistrants($params) {
 				CRM_NcnCiviZoom_Utils::updateZoomParticipantJoinLink($participantDetail['participant_id'], $registrantsListConsolidated[$participantDetail['email']]['join_url']);
 			}
 			$recentRegistrants = CRM_NcnCiviZoom_Utils::filterZoomRegistrantsByTime($registrantsList, $params['mins']);
+			CRM_Core_Error::debug_var('recentRegistrants', $recentRegistrants);
 			if(!empty($recentRegistrants)){
 				$notesUpdateMessage = CRM_NcnCiviZoom_Utils::updateZoomRegistrantsToNotes($event['id'], $registrantsList);
 				$result[$event['id']]['Notes Update Message'] = $notesUpdateMessage;
