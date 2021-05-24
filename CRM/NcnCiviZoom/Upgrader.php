@@ -204,4 +204,10 @@ class CRM_NcnCiviZoom_Upgrader extends CRM_NcnCiviZoom_Upgrader_Base {
     CRM_NcnCiviZoom_Utils::forUpgrade1009();
     return TRUE;
   }
+
+  //Upgrade function to add emailed column to the zoom registrants table
+  public function upgrade_1010(){
+    CRM_NcnCiviZoom_Utils::forUpgrade1010();
+    return TRUE;
+  }
 }

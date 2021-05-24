@@ -270,13 +270,15 @@ class CRM_NcnCiviZoom_Utils {
   public static function getUpcomingEventsList(){
     $today = date("Y-m-d");
 
-    $startDate = civicrm_api3('Event', 'get', [
+    $apiParams = array(
       'start_date' => ['>=' => $today],
-    ]);
+    );
+    $startDate = civicrm_api3('Event', 'get', $apiParams);
 
-    $endDate = civicrm_api3('Event', 'get', [
+    $apiParams = array(
       'end_date' => ['>=' => $today],
-    ]);
+    );
+    $endDate = civicrm_api3('Event', 'get', $apiParams);
 
     return self::multiDimArrayUnion($startDate['values'], $endDate['values']);
   }
@@ -290,6 +292,9 @@ class CRM_NcnCiviZoom_Utils {
    */
   public static function filterZoomRegistrantsByTime($registrantsList = [], $minsBack = 60){
     if(empty($registrantsList) || !is_array($registrantsList)){
+      CRM_Core_Error::debug_log_message('Required Params Missing or not in proper format in  '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('registrantsList', $registrantsList);
+      CRM_Core_Error::debug_var('minsBack', $minsBack);
       return;
     }
     $recentRegistrants = [];
@@ -319,6 +324,9 @@ class CRM_NcnCiviZoom_Utils {
    */
   public static function stringOfRegistrants($registrantsList = [], $glue = ' , '){
     if(empty($registrantsList) || !is_array($registrantsList)){
+      CRM_Core_Error::debug_log_message('Required Params Missing or not in proper format in  '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('registrantsList', $registrantsList);
+      CRM_Core_Error::debug_var('glue', $glue);
       return;
     }
     $registrantsUpdateArray = [];
@@ -338,6 +346,9 @@ class CRM_NcnCiviZoom_Utils {
   public static function updateZoomRegistrantsToNotes($eventId, $registrantsList = []){
     $updateResult = '';
     if(empty($eventId) || empty($registrantsList) || !is_array($registrantsList)){
+      CRM_Core_Error::debug_log_message('Required Params Missing or not in proper format in  '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('eventId', $eventId);
+      CRM_Core_Error::debug_var('registrantsList', $registrantsList);
       $updateResult = 'Params Missing';
       return $updateResult;
     }
@@ -381,6 +392,11 @@ class CRM_NcnCiviZoom_Utils {
    * Function to get message template details
    */
   public static function getMessageTemplateDetails($title = null, $id = null) {
+    if(empty($title) && empty($id)){
+      CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('title', $title);
+      CRM_Core_Error::debug_var('id', $id);
+    }
     if(!empty($title)){
       $result = civicrm_api3('MessageTemplate', 'get', array(
         'sequential' => 1,
@@ -395,8 +411,6 @@ class CRM_NcnCiviZoom_Utils {
       ));
 
       return $result ['values'][0];
-    }else{
-      return [];
     }
   }
 
@@ -409,6 +423,9 @@ class CRM_NcnCiviZoom_Utils {
    */
   public static function sendZoomRegistrantsToEmail($toEmails, $registrantsList = [], $event){
     if(empty($toEmails) || empty($registrantsList)){
+      CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('toEmails', $toEmails);
+      CRM_Core_Error::debug_var('registrantsList', $registrantsList);
       return;
     }
 
@@ -416,9 +433,11 @@ class CRM_NcnCiviZoom_Utils {
     $msgId = CRM_NcnCiviZoom_Utils::getEmailTemplateIdToSendZoomRegistrants();
     $emailContent = self::getMessageTemplateDetails(null, $msgId);
     if(empty($emailContent)){
+      CRM_Core_Error::debug_log_message('Email Template not found in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_log_message('Message Template Id is: '.$msgId);
       return 'Email Template Not found.';
     }
-    $return = [];
+    $return = array();
     // Replacing the tokens
     $emailContent['subject'] = str_replace('{event_title}' ,$event['title'], $emailContent['msg_subject']);
     $registrantsString = self::stringOfRegistrants($registrantsList, '<br>');
@@ -442,10 +461,11 @@ class CRM_NcnCiviZoom_Utils {
     $emailIds = explode(',', $toEmails);
     foreach ($emailIds as $emailId) {
       $emailSent = self::sendEmail($emailId, $emailContent);
+      $return['status'] = $emailSent;
       if($emailSent){
-        $return['email_message'][] = 'Email has been Sent to '.$emailId;
+        $return['email_message'] = 'Email has been Sent to '.$emailId;
       }else{
-        $return['email_message'][] = "Email couldn't be Sent to ".$emailId;
+        $return['email_message'] = "Email couldn't be Sent to ".$emailId;
       }
     }
 
@@ -458,6 +478,9 @@ class CRM_NcnCiviZoom_Utils {
   public static function sendEmail($email, $emailContent) {
     $emailSent = FALSE;
     if (empty($email) || empty($emailContent)) {
+      CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('email', $email);
+      CRM_Core_Error::debug_var('emailContent', $emailContent);
       return $emailSent;
     }
 
@@ -471,7 +494,13 @@ class CRM_NcnCiviZoom_Utils {
     $mailParams['from'] = reset($defaultAddress);
 
     require_once 'CRM/Utils/Mail.php';
+
     $emailSent = CRM_Utils_Mail::send($mailParams);
+    CRM_Core_Error::debug_var('emailSent', $emailSent);
+    if(!$emailSent){
+      CRM_Core_Error::debug_log_message('Email sending failed in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('mailParams', $mailParams);
+    }
 
     return $emailSent;
   }
@@ -487,7 +516,7 @@ class CRM_NcnCiviZoom_Utils {
       'name' => $customGroupName,
     ]);
 
-    civicrm_api3('CustomField', 'create', [
+    $apiParams = array(
       'sequential' => 1,
       'custom_group_id' => $customGroupDetails['values'][0]['id'],
       'label' => "Event Zoom Notes",
@@ -495,24 +524,48 @@ class CRM_NcnCiviZoom_Utils {
       'data_type' => "Memo",
       'html_type' => "TextArea",
       'is_view' => 1,
-    ]);
+    );
+    try {
+      $apiResult = civicrm_api3('CustomField', 'create', $apiParams);
+    } catch (Exception $e) {
+      CRM_Core_Error::debug_log_message('Error while calling an api in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_log_message('Api entity: CustomField , Api Action: create');
+      CRM_Core_Error::debug_var('apiParams', $apiParams);
+      CRM_Core_Error::debug_var('Api Error details', $e);
+    }
 
     $sendZoomRegistrantsEmailTemplateTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
     $msgHtml = "<br> {event_title} <br> {registrants} <br> {event_start_date} <br> {event_id} <br>";
     $msgSubject = "Recently Joined to the zoom event: {event_title}";
-    civicrm_api3('MessageTemplate', 'create', [
+    $apiParams = array(
       'msg_title' => $sendZoomRegistrantsEmailTemplateTitle,
       'msg_html' => $msgHtml,
       'msg_subject' => $msgSubject,
-    ]);
+    );
+    try {
+      $apiResult = civicrm_api3('MessageTemplate', 'create', $apiParams); 
+    } catch (Exception $e) {
+      CRM_Core_Error::debug_log_message('Error while calling an api in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_log_message('Api entity: MessageTemplate , Api Action: create');
+      CRM_Core_Error::debug_var('apiParams', $apiParams);
+      CRM_Core_Error::debug_var('Api Error details', $e);
+    }
   }
 
   public static function forUpgrade1004(){
     $sendZoomRegistrantsEmailTemplateTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
-    $templateDetails = civicrm_api3('MessageTemplate', 'get', [
+    $apiParams = array(
       'sequential' => 1,
       'msg_title' => $sendZoomRegistrantsEmailTemplateTitle,
-    ]);
+    );
+    try {
+      $templateDetails = civicrm_api3('MessageTemplate', 'get', $apiParams);   
+    } catch (Exception $e) {
+      CRM_Core_Error::debug_log_message('Error while calling an api in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_log_message('Api entity: MessageTemplate , Api Action: get');
+      CRM_Core_Error::debug_var('apiParams', $apiParams);
+      CRM_Core_Error::debug_var('Api Error details', $e);
+    }
     $zoomSettings = self::getZoomSettings();
     if(!empty($templateDetails['id'])){
       $zoomSettings['registrants_email_template_id'] = $templateDetails['id'];
@@ -546,6 +599,9 @@ class CRM_NcnCiviZoom_Utils {
    */
   public static function updateZoomParticipantData($participantId, $zoomData = []){
     if(empty($participantId) || empty($zoomData)){
+      CRM_Core_Error::debug_log_message('Required Params Missing or not in proper format in  '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('participantId', $participantId);
+      CRM_Core_Error::debug_var('zoomData', $zoomData);
       return FALSE;
     }
     // Modifying some keys as per the custom field names
@@ -562,13 +618,13 @@ class CRM_NcnCiviZoom_Utils {
 
     $cGName = CRM_NcnCiviZoom_Constants::CG_ZOOM_DATA_SYNC;
     try {
-        $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
+      $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
     } catch (Exception $e) {
-        // Handle error here.
-        $errorMessage = $e->getMessage();
-        CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Utils::updateZoomParticipantData error details', $errorMessage);
-        CRM_Core_Error::debug_var('Custom Group seems  does not exist- custom group name', $cGName);
-        return FALSE;
+      // Handle error here.
+      $errorMessage = $e->getMessage();
+      CRM_Core_Error::debug_var('CRM_NcnCiviZoom_Utils::updateZoomParticipantData error details', $errorMessage);
+      CRM_Core_Error::debug_var('Custom Group seems  does not exist- custom group name', $cGName);
+      return FALSE;
     }
 
     if(empty($cGId)){
@@ -625,6 +681,8 @@ class CRM_NcnCiviZoom_Utils {
       }
       return $updateResult['values'];
     }else{
+      CRM_Core_Error::debug_log_message('Nothing to update in  '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('updateParams', $updateParams);
       return FALSE;
     }
   }
@@ -660,6 +718,9 @@ class CRM_NcnCiviZoom_Utils {
 
         return $eventList;
       }
+    }else{
+      CRM_Core_Error::debug_log_message('Required Params Missing or not in proper format in  '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('params', $params);
     }
 
     return FALSE;
@@ -694,6 +755,9 @@ class CRM_NcnCiviZoom_Utils {
       } else {
         return ["status" => 0, "message" => "User ID: ".$params["user_id"]." does not exists"];
       }
+    }else{
+      CRM_Core_Error::debug_log_message('Required Params Missing or not in proper format in  '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('params', $params);
     }
   }
 
@@ -706,7 +770,7 @@ class CRM_NcnCiviZoom_Utils {
 
     $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
     if(!empty($cGId)){
-      civicrm_api3('CustomField', 'create', [
+      $apiParams = array(
         'sequential' => 1,
         'custom_group_id' => $cGId,
         'label' => "Unmatched Zoom Participants",
@@ -715,7 +779,18 @@ class CRM_NcnCiviZoom_Utils {
         'html_type' => "TextArea",
         'column_name' => 'unmatched_zoom_participants',
         'is_view' => 1,
-      ]);
+      );
+      try {
+        $apiResult = civicrm_api3('CustomField', 'create', $apiParams);
+      } catch (Exception $e) {
+        CRM_Core_Error::debug_log_message('Error while calling an api in '.__CLASS__.'::'.__FUNCTION__);
+        CRM_Core_Error::debug_log_message('Api entity: CustomField , Api Action: create');
+        CRM_Core_Error::debug_var('apiParams', $apiParams);
+        CRM_Core_Error::debug_var('Api Error details', $e);
+      }
+    }else{
+      CRM_Core_Error::debug_log_message('Error in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_log_message("Group Id couldn't be found for Group Name: ".$cGName);
     }
   }
 
@@ -728,6 +803,8 @@ class CRM_NcnCiviZoom_Utils {
    */
   public static function stringOfParticipants($participantsList = [], $glue = ' , '){
     if(empty($participantsList) || !is_array($participantsList)){
+      CRM_Core_Error::debug_log_message('Required Params Missing or not in proper format in  '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('participantsList', $participantsList);
       return;
     }
     $participantsUpdateArray = [];
@@ -745,39 +822,45 @@ class CRM_NcnCiviZoom_Utils {
    * @param eventId - Integer
    * @param exceptionList - Array
    */
-  public static function updateUnmatchedZoomParticipantsToNotes($eventId, $exceptionList = []){
+  public static function updateUnmatchedZoomParticipantsToNotes($eventId, $exceptionList = array()){
     $updateResult = '';
     if(empty($eventId) || empty($exceptionList) || !is_array($exceptionList)){
       $updateResult = 'Params Missing';
+      CRM_Core_Error::debug_log_message('Required Params Missing or not in proper format in  '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('eventId', $eventId);
+      CRM_Core_Error::debug_var('exceptionList', $exceptionList);
       return $updateResult;
     }
 
     $updateString = self::stringOfParticipants($exceptionList);
     $cFName = CRM_NcnCiviZoom_Constants::CF_Unmatched_Zoom_Participants;
 
+    $apiParams = array(
+      'sequential' => 1,
+      'name' => $cFName,
+    );
     try {
-      $cFDetails = civicrm_api3('CustomField', 'get', [
-        'sequential' => 1,
-        'name' => $cFName,
-      ]);
+      $cFDetails = civicrm_api3('CustomField', 'get', $apiParams);
     } catch (Exception $e) {
-      CRM_Core_Error::debug_var('Error in updateUnmatchedZoomParticipantsToNotes', $e);
-      CRM_Core_Error::debug_var('Error while calling api CustomField get', $cFName);
-      $updateResult = "Couldn't retrieve the Custom Field ".$cFName." data";
+      CRM_Core_Error::debug_log_message('Error while calling an api in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_log_message('Api entity: CustomField , Api Action: get');
+      CRM_Core_Error::debug_var('apiParams', $apiParams);
+      CRM_Core_Error::debug_var('Api Error details', $e);
+      $updateResult = "Couldn't retrieve the Custom Field: ".$cFName." data";
     }
     if(!empty($cFDetails['id'])){
+      $apiParams = array(
+        'entity_id' => $eventId,
+        'custom_'.$cFDetails['id'] => $updateString.".",
+      );
       try {
-        $apiResult = civicrm_api3('CustomValue', 'create', [
-          'entity_id' => $eventId,
-          'custom_'.$cFDetails['id'] => $updateString.".",
-        ]);
+        $apiResult = civicrm_api3('CustomValue', 'create', $apiParams);
       } catch (Exception $e) {
-        CRM_Core_Error::debug_var('Error in updateUnmatchedZoomParticipantsToNotes', $e);
-        CRM_Core_Error::debug_var('Error while calling api CustomField create', [
-          'eventId' => $eventId,
-          'cFDetails' => $cFDetails,
-          'updateString' => $updateString
-        ]);
+        CRM_Core_Error::debug_log_message('Error while calling an api in '.__CLASS__.'::'.__FUNCTION__);
+        CRM_Core_Error::debug_log_message('Api entity: CustomValue , Api Action: create');
+        CRM_Core_Error::debug_var('Api params', $apiParams);
+        CRM_Core_Error::debug_var('cFDetails', $cFDetails);
+        CRM_Core_Error::debug_var('Error details', $e);
       }
       if($apiResult['values']){
         $updateResult = 'Exceptions have been updated to the event successfully.';
@@ -796,7 +879,7 @@ class CRM_NcnCiviZoom_Utils {
 
     $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
     if(!empty($cGId)){
-      civicrm_api3('CustomField', 'create', [
+      $apiParams = array(
         'sequential' => 1,
         'custom_group_id' => $cGId,
         'label' => "Zoom Join Link",
@@ -805,7 +888,18 @@ class CRM_NcnCiviZoom_Utils {
         'html_type' => "Text",
         'column_name' => 'zoom_join_link',
         'is_view' => 1,
-      ]);
+      );
+      try {
+        $apiResult = civicrm_api3('CustomField', 'create', $apiParams);
+      } catch (Exception $e) {
+        CRM_Core_Error::debug_log_message('Error while calling an api in '.__CLASS__.'::'.__FUNCTION__);
+        CRM_Core_Error::debug_log_message('Api entity: CustomField , Api Action: create');
+        CRM_Core_Error::debug_var('apiParams', $apiParams);
+        CRM_Core_Error::debug_var('Api Error details', $e);
+      }
+    }else{
+      CRM_Core_Error::debug_log_message('Error in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_log_message("Group Id couldn't be found for Group Name: ".$cGName);
     }
   }
 
@@ -818,7 +912,7 @@ class CRM_NcnCiviZoom_Utils {
 
     $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
     if(!empty($cGId)){
-      civicrm_api3('CustomField', 'create', [
+      $apiParams = array(
         'sequential' => 1,
         'custom_group_id' => $cGId,
         'label' => "Zoom Participant Join Link",
@@ -827,7 +921,18 @@ class CRM_NcnCiviZoom_Utils {
         'html_type' => "Text",
         'column_name' => 'zoom_participant_join_link',
         'is_view' => 1,
-      ]);
+      );
+      try {
+        $apiResult = civicrm_api3('CustomField', 'create', $apiParams);  
+      } catch (Exception $e) {
+        CRM_Core_Error::debug_log_message('Error while calling an api in '.__CLASS__.'::'.__FUNCTION__);
+        CRM_Core_Error::debug_log_message('Api entity: CustomField , Api Action: create');
+        CRM_Core_Error::debug_var('apiParams', $apiParams);
+        CRM_Core_Error::debug_var('Api Error details', $e);
+      }
+    }else{
+      CRM_Core_Error::debug_log_message('Error in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_log_message("Group Id couldn't be found for Group Name: ".$cGName);
     }
   }
 
@@ -842,16 +947,18 @@ class CRM_NcnCiviZoom_Utils {
       return;
     }
 
+    $apiParams = array(
+      'sequential' => 1,
+      'contact_id' => $contactId,
+      'event_id' => $eventId,
+    );
     try {
-      $participantDetals = civicrm_api3('Participant', 'get', [
-        'sequential' => 1,
-        'contact_id' => $contactId,
-        'event_id' => $eventId,
-      ]);
+      $participantDetals = civicrm_api3('Participant', 'get', $apiParams);
     } catch (Exception $e) {
       CRM_Core_Error::debug_log_message('Error while calling Participant get api in '.__CLASS__.'::'.__FUNCTION__);
-      CRM_Core_Error::debug_var('contactId', $contactId);
-      CRM_Core_Error::debug_var('eventId', $eventId);
+      CRM_Core_Error::debug_log_message('Api entity: Participant , Api Action: get');
+      CRM_Core_Error::debug_var('apiParams', $apiParams);
+      CRM_Core_Error::debug_var('Api Error details', $e);
     }
     if(!empty($participantDetals['id'])){
       return $participantDetals['id'];
@@ -875,20 +982,39 @@ class CRM_NcnCiviZoom_Utils {
     $cGId = CRM_Core_DAO::getFieldValue('CRM_Core_DAO_CustomGroup', $cGName, 'id', 'name');
 
     if(!empty($cGId)){
-      $cFDetails = civicrm_api3('CustomField', 'get', [
-        'sequential' => 1,
-        'custom_group_id' => $cGId,
-        'name' => $cFName,
-      ]);
+        $apiParams = array(
+          'sequential' => 1,
+          'custom_group_id' => $cGId,
+          'name' => $cFName,
+        );
+      try {
+        $cFDetails = civicrm_api3('CustomField', 'get', $apiParams); 
+      } catch (Exception $e) {
+        CRM_Core_Error::debug_log_message('Error while calling an api in '.__CLASS__.'::'.__FUNCTION__);
+        CRM_Core_Error::debug_log_message('Api entity: CustomField , Api Action: get');
+        CRM_Core_Error::debug_var('apiParams', $apiParams);
+        CRM_Core_Error::debug_var('Api Error details', $e);
+      }
       if(!empty($cFDetails['id'])){
-        $customValueWritten = civicrm_api3('CustomValue', 'create', [
+        $apiParams = array(
           'sequential' => 1,
           'entity_id' => $pId,
           'custom_'.$cFDetails['id'] => $zoom_join_link,
-        ]);
-        return !$customValueWritten['is_error'];
+        );
+        try {
+          $customValueWritten = civicrm_api3('CustomValue', 'create', $apiParams);
+          return !$customValueWritten['is_error'];
+        } catch (Exception $e) {
+          CRM_Core_Error::debug_log_message('Error while calling an api in '.__CLASS__.'::'.__FUNCTION__);
+          CRM_Core_Error::debug_log_message('Api entity: CustomValue , Api Action: create');
+          CRM_Core_Error::debug_var('apiParams', $apiParams);
+          CRM_Core_Error::debug_var('Api Error details', $e);
+        }
       }
+    }else{
+      CRM_Core_Error::debug_log_message("Group Id couldn't be found for Group Name: ".$cGName);
     }
+
     return FALSE;
   }
 
@@ -917,16 +1043,19 @@ class CRM_NcnCiviZoom_Utils {
    */
   public static function getZoomRegistrantsFromCivi($eventId = NULL){
     $zoomRegistrants = array();
-    if(!empty($eventId)){
-      $tableName = CRM_NcnCiviZoom_Constants::ZOOM_REGISTRANTS_TABLE_NAME;
-      $getZoomRegistrantsQuery = "SELECT * FROM ".$tableName." WHERE event_id = %1";
-      $qParams = array(
-        1 => array($eventId, 'Integer')
-      );
-      $dao = CRM_Core_DAO::executeQuery($getZoomRegistrantsQuery, $qParams);
-      while ($dao->fetch()) {
-        $zoomRegistrants[] = $dao->toArray();
-      }
+    if(empty($eventId)){
+      CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('eventId', $eventId);
+      return $zoomRegistrants;
+    }
+    $tableName = CRM_NcnCiviZoom_Constants::ZOOM_REGISTRANTS_TABLE_NAME;
+    $getZoomRegistrantsQuery = "SELECT * FROM ".$tableName." WHERE event_id = %1";
+    $qParams = array(
+      1 => array($eventId, 'Integer')
+    );
+    $dao = CRM_Core_DAO::executeQuery($getZoomRegistrantsQuery, $qParams);
+    while ($dao->fetch()) {
+      $zoomRegistrants[] = $dao->toArray();
     }
 
     return $zoomRegistrants;
@@ -937,7 +1066,9 @@ class CRM_NcnCiviZoom_Utils {
    */
   public static function insertZoomRegistrantsInToCivi($eventId = NULL, $registrantsList = array()){
     if(empty($eventId) || empty($registrantsList) || !is_array($registrantsList)){
-      CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_log_message('Required Params Missing or not in proper format in  '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('eventId', $eventId);
+      CRM_Core_Error::debug_var('registrantsList', $registrantsList);
       return FALSE;
     }
 
@@ -993,6 +1124,8 @@ class CRM_NcnCiviZoom_Utils {
   public static function getZoomRegistrantDetailsById($Id){
     $zoomRegistrant = array();
     if(empty($Id)){
+      CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('Id', $Id);
       return $zoomRegistrant;
     }
     $tableName = CRM_NcnCiviZoom_Constants::ZOOM_REGISTRANTS_TABLE_NAME;
@@ -1007,48 +1140,59 @@ class CRM_NcnCiviZoom_Utils {
    * Function to check For Participant Record In Civi By Email
    */
   public function checkForParticipantRecordInCivi($emailId = '', $event_id = null){
-    if(!empty($emailId) && !empty($event_id)){
-      $checkForPaticipantQuery = "
-        SELECT
-          p.id AS participant_id
-        FROM civicrm_participant p
-        LEFT JOIN civicrm_email e ON p.contact_id = e.contact_id
-        WHERE
-          e.email = %1 AND
-          p.event_id = %2";
-      $qParams = array(
-        1 => array($emailId, 'String'),
-        2 => array($event_id, 'Integer'),
-      );
-      $dao = CRM_Core_DAO::executeQuery($checkForPaticipantQuery, $qParams);
-      while ($dao->fetch()) {
-        return TRUE;
-      }
+    $participantRecordPresent = FALSE;
+    if(empty($emailId) || empty($event_id)){
+      CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('emailId', $emailId);
+      CRM_Core_Error::debug_var('event_id', $event_id);
+      return $participantRecordPresent;
     }
-    return FALSE;
+    $checkForPaticipantQuery = "
+      SELECT
+        p.id AS participant_id
+      FROM civicrm_participant p
+      LEFT JOIN civicrm_email e ON p.contact_id = e.contact_id
+      WHERE
+        e.email = %1 AND
+        p.event_id = %2";
+    $qParams = array(
+      1 => array($emailId, 'String'),
+      2 => array($event_id, 'Integer'),
+    );
+    $dao = CRM_Core_DAO::executeQuery($checkForPaticipantQuery, $qParams);
+    while ($dao->fetch()) {
+      $participantRecordPresent = TRUE;
+    }
+
+    return $participantRecordPresent;
   }
 
   /*
    * Function to check For Contact Record In Civi By Email
    */
   public function checkForContactRecordInCivi($emailId = ''){
-    if(!empty($emailId)){
-      $checkForContactQuery = "
-        SELECT
-          c.id
-        FROM civicrm_contact c
-        LEFT JOIN civicrm_email e ON e.contact_id = c.id
-        WHERE
-          e.email = %1";
-      $qParams = array(
-        1 => array($emailId, 'String'),
-      );
-      $dao = CRM_Core_DAO::executeQuery($checkForContactQuery, $qParams);
-      while ($dao->fetch()) {
-        return TRUE;
-      }
+    $contactRecordPresent = FALSE;
+    if(empty($emailId)){
+      CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('emailId', $emailId);
+      return $contactRecordPresent;
     }
-    return FALSE;
+    $checkForContactQuery = "
+      SELECT
+        c.id
+      FROM civicrm_contact c
+      LEFT JOIN civicrm_email e ON e.contact_id = c.id
+      WHERE
+        e.email = %1";
+    $qParams = array(
+      1 => array($emailId, 'String'),
+    );
+    $dao = CRM_Core_DAO::executeQuery($checkForContactQuery, $qParams);
+    while ($dao->fetch()) {
+      $contactRecordPresent = TRUE;
+    }
+
+    return $contactRecordPresent;
   }
 
   /*
@@ -1057,6 +1201,8 @@ class CRM_NcnCiviZoom_Utils {
   public static function getNoOfUnmatchedZoomRegistrants($eventId){
     $no_of_unmatched = 0;
     if(empty($eventId)){
+      CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('eventId', $eventId);
       return $no_of_unmatched;
     }
     $zoomRegistrants = self::getZoomRegistrantsFromCivi($eventId);
@@ -1073,5 +1219,109 @@ class CRM_NcnCiviZoom_Utils {
       }
     }
     return $no_of_unmatched;
+  }
+
+  /*
+   * Function to check and correct the page size to be used for a zoom api call
+   * Assures the pageSize is between 1 to 300
+   */
+  public static function checkPageSize(&$pageSize){
+    if(!empty($pageSize) && (intval($pageSize) > 0)){
+      $pageSize = intval($pageSize);
+      if(($pageSize > 300)){
+        $pageSize = 300;
+      }
+    }else{
+      $pageSize = 150;
+    }
+  }
+
+  /*
+   * Function to add emailed column to the zoom registrants table
+   */
+  public static function forUpgrade1010(){
+    $tableName = CRM_NcnCiviZoom_Constants::ZOOM_REGISTRANTS_TABLE_NAME;
+    $alterTableQuery = "ALTER TABLE civicrm_zoom_registrants ADD `emailed` int NOT NULL  DEFAULT 0";
+    CRM_Core_DAO::executeQuery($alterTableQuery);
+  }
+
+  /*
+   * Function to set emailed as 1 against the given zoom registrants
+   */
+  public static function setZoomRegistrantAsEmailed($eventId, $registrants = array()){
+    if(empty($eventId) || empty($registrants) || !is_array($registrants)){
+      CRM_Core_Error::debug_log_message('Required Params Missing or not in proper format in  '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('eventId', $eventId);
+      CRM_Core_Error::debug_var('registrants', $registrants);
+      return;
+    }
+    $qParams = array(
+      1 => array(1, 'Integer'),
+      2 => array($eventId, 'Integer'),
+    );
+
+    $emailArray = array();
+    $i = 3;
+    foreach ($registrants as $key => $registrant) {
+      if(!empty($registrant['email'])){
+        $qParams[$i] = array($registrant['email'], 'String');
+        $emailArray[] = '%'.$i;
+        $i++;
+      }
+    }
+    $emailString = implode(' , ', $emailArray);
+
+    $updateEmailSentQuery = "UPDATE civicrm_zoom_registrants SET emailed = %1 WHERE event_id = %2 AND email IN ($emailString)";
+    CRM_Core_Error::debug_var('updateEmailSentQuery', $updateEmailSentQuery);
+    CRM_Core_Error::debug_var('qParams', $qParams);
+    if(!empty($emailString)){
+      CRM_Core_DAO::executeQuery($updateEmailSentQuery, $qParams);
+    }
+  }
+
+  /*
+   * Function to filter registrants if they have been already emailed
+   */
+  public static function filterRegistrantsIfEmailed($eventId, $registrantsList = array()){
+    if(empty($eventId) || empty($registrantsList) || !is_array($registrantsList)){
+      CRM_Core_Error::debug_log_message('Required Params Missing or not in proper format in  '.__CLASS__.'::'.__FUNCTION__);
+      CRM_Core_Error::debug_var('eventId', $eventId);
+      CRM_Core_Error::debug_var('registrantsList', $registrantsList);
+      return array();
+    }
+    $returnList = $registrantsList;
+    $registrantsSet = array();
+    $qParams = array(
+      1 => array($eventId, 'Integer'),
+    );
+
+    $emailArray = array();
+    $i = 2;
+    foreach ($registrantsList as $key => $registrant) {
+      if(!empty($registrant['email'])){
+        $qParams[$i] = array($registrant['email'], 'String');
+        $emailArray[] = '%'.$i;
+        $i++;
+      }
+    }
+    $emailString = implode(' , ', $emailArray);
+
+    $updateEmailSentQuery = "SELECT * FROM civicrm_zoom_registrants WHERE event_id = %1 AND email IN ($emailString) AND emailed = 1";
+    CRM_Core_Error::debug_var('updateEmailSentQuery', $updateEmailSentQuery);
+    CRM_Core_Error::debug_var('qParams', $qParams);
+    if(!empty($emailString)){
+      $dao = CRM_Core_DAO::executeQuery($updateEmailSentQuery, $qParams);
+      while ($dao->fetch()) {
+        $registrantsSet[$dao->email] = $dao->toArray();
+      }
+    }
+
+    foreach ($returnList as $key => $registrant) {
+      if(isset($registrantsSet[$registrant['email']])){
+        unset($returnList[$key]);
+      }
+    }
+
+    return $returnList;
   }
 }

@@ -291,7 +291,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 		return $return;
 	}
 
-  public static function getZoomRegistrants($eventId){
+  public static function getZoomRegistrants($eventId, $pageSize = 150){
     if(empty($eventId)){
       return [];
     }
@@ -305,11 +305,11 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 		$url = '';
 		$accountId = CRM_NcnCiviZoom_Utils::getZoomAccountIdByEventId($eventId);
 		$settings = CRM_NcnCiviZoom_Utils::getZoomSettings();
-
+		CRM_NcnCiviZoom_Utils::checkPageSize($pageSize);
 		if(!empty($meetingId)){
-	  	$url = $settings['base_url'] . "/meetings/".$meetingId.'/registrants?&page_size=150';
+	  	$url = $settings['base_url'] . "/meetings/".$meetingId.'/registrants?&page_size='.$pageSize;
 		} elseif (!empty($webinarId)) {
-	  	$url = $settings['base_url'] . "/webinars/".$webinarId.'/registrants?&page_size=150';
+	  	$url = $settings['base_url'] . "/webinars/".$webinarId.'/registrants?&page_size='.$pageSize;
 		}
 		$page = 1;
 	  $token = $object->createJWTToken($accountId);
@@ -327,13 +327,13 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 			if(!empty($result['registrants'])){
 				$zoomRegistrantsList = array_merge($zoomRegistrantsList, $result['registrants']);
 			}
-			$next_page_token = 'next_page_token='.$result['next_page_token'];
+			$next_page_token = '&next_page_token='.$result['next_page_token'];
 		} while ($result['next_page_token']);
 
     return $zoomRegistrantsList;
   }
 
-  public static function getZoomAttendeeOrAbsenteesList($eventId){
+  public static function getZoomAttendeeOrAbsenteesList($eventId, $pageSize = 150){
     if(empty($eventId)){
       return [];
     }
@@ -347,12 +347,13 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 		$url = $array_name = $key_name = '';
 		$accountId = CRM_NcnCiviZoom_Utils::getZoomAccountIdByEventId($eventId);
 		$settings = CRM_NcnCiviZoom_Utils::getZoomSettings();
+		CRM_NcnCiviZoom_Utils::checkPageSize($pageSize);
 		if(!empty($meetingId)){
-	  	$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?&page_size=150";
+	  	$url = $settings['base_url'] . "/past_meetings/$meetingId/participants?&page_size=".$pageSize;
 	  	$array_name = 'participants';
 	  	$key_name = 'user_email';
 		} elseif (!empty($webinarId)) {
-	  	$url = $settings['base_url'] . "/past_webinars/$webinarId/absentees?&page_size=150";
+	  	$url = $settings['base_url'] . "/past_webinars/$webinarId/absentees?&page_size=".$pageSize;
 	  	$array_name = 'absentees';
 	  	$key_name = 'email';
 		}
@@ -374,7 +375,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 					$returnZoomList[] = $item[$key_name];
 				}
 			}
-			$next_page_token = 'next_page_token='.$result['next_page_token'];
+			$next_page_token = '&next_page_token='.$result['next_page_token'];
 		} while ($result['next_page_token']);
     return $returnZoomList;
   }
@@ -385,7 +386,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
    *
    * @return $returnZoomList type-array of zoom participants data
    */
-  public static function getZoomParticipantsData($eventId){
+  public static function getZoomParticipantsData($eventId, $pageSize = 150){
     if(empty($eventId)){
       return [];
     }
@@ -399,14 +400,15 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 		$url = $array_name = $key_name = '';
 		$accountId = CRM_NcnCiviZoom_Utils::getZoomAccountIdByEventId($eventId);
 		$settings = CRM_NcnCiviZoom_Utils::getZoomSettings();
+		CRM_NcnCiviZoom_Utils::checkPageSize($pageSize);
 		if(!empty($meetingId)){
 			// Calling Meeting participants report api
-	  	$url = $settings['base_url'] . "/report/meetings/$meetingId/participants?&page_size=150";
+	  	$url = $settings['base_url'] . "/report/meetings/$meetingId/participants?&page_size=".$pageSize;
 	  	$array_name = 'participants';
 	  	$key_name = 'user_email';
 		} elseif (!empty($webinarId)) {
 			// Calling Webinar absentees api
-	  	$url = $settings['base_url'] . "/past_webinars/$webinarId/absentees?&page_size=150";
+	  	$url = $settings['base_url'] . "/past_webinars/$webinarId/absentees?&page_size=".$pageSize;
 	  	$array_name = 'absentees';
 	  	$key_name = 'email';
 		}
@@ -429,12 +431,12 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 					$returnZoomList[$item[$key_name]][] = $item;
 				}
 			}
-			$next_page_token = 'next_page_token='.$result['next_page_token'];
+			$next_page_token = '&next_page_token='.$result['next_page_token'];
 		} while ($result['next_page_token']);
 
 		if (!empty($webinarId)) {
 			// Calling Webinar participants report api also
-	  	$url = $settings['base_url'] . "/report/webinars/$webinarId/participants?&page_size=150";
+	  	$url = $settings['base_url'] . "/report/webinars/$webinarId/participants?&page_size=".$pageSize;
 	  	$array_name = 'participants';
 	  	$key_name = 'user_email';
 		  $token = $object->createJWTToken($accountId);
@@ -456,7 +458,7 @@ class CRM_CivirulesActions_Participant_AddToZoom extends CRM_Civirules_Action{
 						$returnZoomList[$item[$key_name]][] = $item;
 					}
 				}
-				$next_page_token = 'next_page_token='.$result['next_page_token'];
+				$next_page_token = '&next_page_token='.$result['next_page_token'];
 			} while ($result['next_page_token']);
 		}
 
