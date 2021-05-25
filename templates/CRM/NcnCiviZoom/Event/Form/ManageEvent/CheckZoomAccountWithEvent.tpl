@@ -136,6 +136,10 @@ function checkEventZoom(msgboxid, count = 0){
          $("#"+msgboxid).fadeTo(200,0.1,function() {
             $(this).html(data.message).addClass('cmsmessagebox').css({"color":"#008000","backgroundColor":"#C9FFCA", "border": "1px solid #349534"}).fadeTo(900,1);
          });
+      }else if(data.status == -1){
+         $("#"+msgboxid).fadeTo(200,0.1,function() {
+            $(this).html(data.message).addClass('cmsmessagebox').css({"color":"#000","backgroundColor":"#FFC", "border": "1px solid #c93"}).fadeTo(900,1);
+         });
       }else{
          $("#"+msgboxid).fadeTo(200,0.1,function() {
             $(this).html(data.message).addClass('cmsmessagebox').css({"color":"#008000","backgroundColor":"#F7CBCA", "border": "1px solid #FF0000"}).fadeTo(900,1);

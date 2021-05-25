@@ -38,12 +38,14 @@ if (!function_exists('dd')) {
     $isDevelVersionOk = TRUE;
     $config = CRM_Core_Config::singleton();
     if ($config->userFramework=="Drupal") {
-      $develInfo = system_get_info('module', 'devel');
-      if(empty($develInfo)){
-        if(version_compare($develInfo['version'], '7.x-1.5') < 1){
-            $isDevelVersionOk = FALSE;
+        if(function_exists('system_get_info')){
+          $develInfo = system_get_info('module', 'devel');
+          if(!empty($develInfo)){
+            if(version_compare($develInfo['version'], '7.x-1.5') < 1){
+                $isDevelVersionOk = FALSE;
+            }
+          }       
         }
-      }
     }
 
     // Donot declare if the CMS is Drupal 7 and devel module is enabled

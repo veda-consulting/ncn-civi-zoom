@@ -260,15 +260,30 @@ function civicrm_api3_zoomevent_getrecentzoomregistrants($params) {
 	$events = CRM_NcnCiviZoom_Utils::getUpcomingEventsList();
 	foreach ($events as $key => $event) {
 		$registrantsList = CRM_CivirulesActions_Participant_AddToZoom::getZoomRegistrants($event['id']);
-		CRM_NcnCiviZoom_Utils::insertZoomRegistrantsInToCivi($event['id'], $registrantsList);
 		if(!empty($registrantsList)){
+			CRM_NcnCiviZoom_Utils::insertZoomRegistrantsInToCivi($event['id'], $registrantsList);
+			$registrantsEmailList = $registrantsListConsolidated = array();
+			foreach ($registrantsList as $registrant) {
+				$registrantsListConsolidated[$registrant['email']] = $registrant;
+				$registrantsEmailList[]	= $registrant['email'];
+			}
+			$participantDetails = selectZoomParticipants($registrantsEmailList, $event['id']);
+			// Updating the zoom participant join link
+			foreach ($participantDetails as $participantDetail) {
+				CRM_NcnCiviZoom_Utils::updateZoomParticipantJoinLink($participantDetail['participant_id'], $registrantsListConsolidated[$participantDetail['email']]['join_url']);
+			}
 			$recentRegistrants = CRM_NcnCiviZoom_Utils::filterZoomRegistrantsByTime($registrantsList, $params['mins']);
+			CRM_Core_Error::debug_var('recentRegistrants', $recentRegistrants);
 			if(!empty($recentRegistrants)){
 				$notesUpdateMessage = CRM_NcnCiviZoom_Utils::updateZoomRegistrantsToNotes($event['id'], $registrantsList);
 				$result[$event['id']]['Notes Update Message'] = $notesUpdateMessage;
-				if(!empty($params['to_emails'])){
-					$emailSentMessage = CRM_NcnCiviZoom_Utils::sendZoomRegistrantsToEmail($params['to_emails'], $recentRegistrants, $event);
-					$result[$event['id']]['Email Update Message'] = $emailSentMessage;
+				$recentRegistrantsForEmail = CRM_NcnCiviZoom_Utils::filterRegistrantsIfEmailed($event['id'], $recentRegistrants);
+				if(!empty($params['to_emails']) && !empty($recentRegistrantsForEmail)){
+					$emailSentDetails = CRM_NcnCiviZoom_Utils::sendZoomRegistrantsToEmail($params['to_emails'], $recentRegistrantsForEmail, $event);
+					if($emailSentDetails['status']){
+						CRM_NcnCiviZoom_Utils::setZoomRegistrantAsEmailed($event['id'], $recentRegistrants);
+					}
+					$result[$event['id']]['Email sent Update'] = $emailSentDetails;
 				}
 			}else{
 				$result[$event['id']]['Notes Update Message'] = 'No recent registrants to update.';
