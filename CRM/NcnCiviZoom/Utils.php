@@ -441,6 +441,7 @@ class CRM_NcnCiviZoom_Utils {
       CRM_Core_Error::debug_log_message('Email Template not found in '.__CLASS__.'::'.__FUNCTION__);
       CRM_Core_Error::debug_log_message('Message Template Id is: '.$msgId);
       $return['email_message'] = 'Email Template Not found.';
+      return $return;
     }
 
     // Modifying the event start date to default date format set in the civi
