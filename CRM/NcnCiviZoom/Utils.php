@@ -424,7 +424,7 @@ class CRM_NcnCiviZoom_Utils {
   public static function sendZoomRegistrantsToEmail($toEmails, $registrantsList = [], $event){
     $return = array(
       'status' => FALSE,
-      'email_message' = '',
+      'email_message' => '',
     );
     if(empty($toEmails) || empty($registrantsList)){
       CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
