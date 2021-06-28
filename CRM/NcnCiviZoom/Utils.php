@@ -422,11 +422,16 @@ class CRM_NcnCiviZoom_Utils {
    * @param event - Integer
    */
   public static function sendZoomRegistrantsToEmail($toEmails, $registrantsList = [], $event){
+    $return = array(
+      'status' => FALSE,
+      'email_message' = '',
+    );
     if(empty($toEmails) || empty($registrantsList)){
       CRM_Core_Error::debug_log_message('Required Params Missing in '.__CLASS__.'::'.__FUNCTION__);
       CRM_Core_Error::debug_var('toEmails', $toEmails);
       CRM_Core_Error::debug_var('registrantsList', $registrantsList);
-      return;
+      $return['email_message'] = 'Required Params Missing';
+      return $return;
     }
 
     // $msgTitle = CRM_NcnCiviZoom_Constants::SEND_ZOOM_REGISTRANTS_EMAIL_TEMPLATE_TITLE;
@@ -435,14 +440,21 @@ class CRM_NcnCiviZoom_Utils {
     if(empty($emailContent)){
       CRM_Core_Error::debug_log_message('Email Template not found in '.__CLASS__.'::'.__FUNCTION__);
       CRM_Core_Error::debug_log_message('Message Template Id is: '.$msgId);
-      return 'Email Template Not found.';
+      $return['email_message'] = 'Email Template Not found.';
     }
-    $return = array();
+
+    // Modifying the event start date to default date format set in the civi
+    $config = CRM_Core_Config::singleton();
+    $dateInputFormat = $config->dateInputFormat;
+    $phpDateFormats = CRM_Utils_Date::datePluginToPHPFormats();
+    $eventStartDateTime = new DateTime($event['event_start_date']);
+    $eventStartDate = $eventStartDateTime->format($phpDateFormats[$dateInputFormat]);
+
     // Replacing the tokens
-    $emailContent['subject'] = str_replace('{event_title}' ,$event['title'], $emailContent['msg_subject']);
     $registrantsString = self::stringOfRegistrants($registrantsList, '<br>');
     $tokens_array = array('{registrants}', '{event_title}' , '{event_start_date}', '{event_id}');
-    $replace_array = array($registrantsString, $event['title'], $event['event_start_date'], $event['id']);
+    $replace_array = array($registrantsString, $event['title'], $eventStartDate, $event['id']);
+    $emailContent['subject'] = str_replace($tokens_array ,$replace_array, $emailContent['msg_subject']);
     // Retrieve the custom fields
     $eventCFields = CRM_Core_BAO_CustomField::getFields('Event');
     foreach ($eventCFields as $cField) {
